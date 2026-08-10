@@ -554,12 +554,18 @@ input {
   display: block;
   border: 1px solid #333;
   overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .phone-image img {
   width: 100%;
   height: auto;
   display: block;
+  pointer-events: none;
+  -webkit-touch-callout: none;
 }
 
 .phone-link {

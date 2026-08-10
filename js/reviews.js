@@ -3,25 +3,17 @@ const REVIEW_STORAGE_KEY = "gnclass-reviews";
 const DEFAULT_REVIEWS = [
   {
     id: "sample-1",
-    title: "만족스러운 이용이었습니다",
-    author: "손님A",
-    body: "친절하게 응대해 주셔서 좋았습니다.",
-    date: "2025.07.04",
-    createdAt: "2025-07-04T12:00:00.000Z",
-    likes: 0,
-  },
-  {
-    id: "sample-2",
-    title: "다시 방문할게요",
-    author: "손님B",
-    body: "분위기 좋고 깔끔했습니다. 다음에도 이용하겠습니다.",
-    date: "2025.04.10",
-    createdAt: "2025-04-10T12:00:00.000Z",
+    title: "수애",
+    author: "손님",
+    body: "정성스럽게 너무 좋았어요",
+    date: "2026.08.10",
+    createdAt: new Date().toISOString(),
     likes: 0,
   },
 ];
 
 function loadReviews() {
+  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
   try {
     const raw = localStorage.getItem(REVIEW_STORAGE_KEY);
     if (!raw) {

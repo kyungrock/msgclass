@@ -3,27 +3,13 @@ const ATTENDANCE_STORAGE_KEY = "gnclass-attendance";
 const DEFAULT_ATTENDANCE = [
   {
     id: "sample-1",
-    title: "010 8316 6955 번호 이동합니다",
-    createdAt: "2025-07-04T12:00:00.000Z",
-  },
-  {
-    id: "sample-2",
-    title: "텔레그램 문의 가능합니다.",
-    createdAt: "2025-04-10T12:00:00.000Z",
-  },
-  {
-    id: "sample-3",
-    title: "8월10일(월) : NF수애, 은비, 해나, 봄이, 보라, 제시, 아영, 조은, 제니, 소나",
-    createdAt: "2025-01-12T12:00:00.000Z",
-  },
-  {
-    id: "sample-4",
-    title: "gnclass.com",
-    createdAt: "2024-03-14T12:00:00.000Z",
+    title: "수애, 보라, 제니, 아영, 소나, 제시",
+    createdAt: new Date().toISOString(),
   },
 ];
 
 function loadAttendance() {
+  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
   try {
     const raw = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
     if (!raw) {

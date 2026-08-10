@@ -3,34 +3,17 @@ const NOTICE_STORAGE_KEY = "gnclass-notices";
 const DEFAULT_NOTICES = [
   {
     id: "sample-1",
-    title: "010 8316 6955 번호 이동합니다",
-    author: "운영자",
-    body: "연락처가 변경되었습니다.\n\n새 번호: 010-8316-6955",
-    date: "2025.07.04",
-    createdAt: "2025-07-04T12:00:00.000Z",
-    likes: 0,
-  },
-  {
-    id: "sample-2",
     title: "텔레그램 문의 가능합니다.",
     author: "운영자",
     body: "텔레그램으로도 문의가 가능합니다.",
-    date: "2025.04.10",
-    createdAt: "2025-04-10T12:00:00.000Z",
-    likes: 0,
-  },
-  {
-    id: "sample-3",
-    title: "사이트 이용 안내",
-    author: "관리자",
-    body: "강남 클라스 사이트 이용 안내입니다.\n출근부, 프로필, 공지사항을 확인해 주세요.",
-    date: "2025.01.12",
-    createdAt: "2025-01-12T12:00:00.000Z",
+    date: "2026.08.10",
+    createdAt: new Date().toISOString(),
     likes: 0,
   },
 ];
 
 function loadNotices() {
+  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
   try {
     const raw = localStorage.getItem(NOTICE_STORAGE_KEY);
     if (!raw) {

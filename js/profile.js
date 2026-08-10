@@ -1,4 +1,5 @@
 const STORAGE_KEY = "gnclass-profile-items";
+const DEFAULT_PROFILE_IMAGE = "images/profile-content.png";
 
 document.addEventListener("DOMContentLoaded", () => {
   const registerBtn = document.getElementById("profile-register-btn");
@@ -10,14 +11,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadItems = () => {
     try {
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      return Array.isArray(data) ? data : [];
+      if (Array.isArray(data) && data.length > 0) return data;
     } catch {
-      return [];
+      /* ignore */
     }
+    return [
+      {
+        id: "default-1",
+        imageData: DEFAULT_PROFILE_IMAGE,
+        createdAt: new Date().toISOString(),
+        isDefault: true,
+      },
+    ];
   };
 
   const saveItems = (items) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(items.filter((item) => !item.isDefault))
+    );
   };
 
   const render = () => {
@@ -31,10 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const img = document.createElement("img");
       img.src = item.imageData;
-      img.alt = "등록된 프로필 이미지";
+      img.alt = "강남클라스 프로필";
       card.appendChild(img);
 
-      if (admin) {
+      if (admin && !item.isDefault) {
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.className = "btn profile-card-remove";
@@ -62,13 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const reader = new FileReader();
       reader.onload = () => {
-        const items = loadItems();
-        items.unshift({
+        const current = loadItems().filter((item) => !item.isDefault);
+        current.unshift({
           id: String(Date.now()),
           imageData: String(reader.result),
           createdAt: new Date().toISOString(),
         });
-        saveItems(items);
+        saveItems(current);
         imageInput.value = "";
         render();
       };
