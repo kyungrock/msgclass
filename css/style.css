@@ -610,6 +610,47 @@ input {
   margin: 0;
 }
 
+/* ===== Notice popup ===== */
+.site-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.site-popup.is-hidden {
+  display: none;
+}
+
+.site-popup-panel {
+  width: min(100%, 340px);
+  padding: 28px 22px 22px;
+  background: #111;
+  border: 1px solid #444;
+  text-align: center;
+}
+
+.site-popup-title {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.site-popup-text {
+  margin: 0 0 22px;
+  font-size: 0.95rem;
+  color: #ccc;
+}
+
+.site-popup-close {
+  min-width: 120px;
+}
+
 /* ===== Auth forms ===== */
 .auth-form {
   max-width: 400px;

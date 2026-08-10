@@ -1,5 +1,5 @@
 const STORAGE_KEY = "gnclass-profile-items";
-const DEFAULT_PROFILE_IMAGE = "images/profile-content.png";
+const DEFAULT_PROFILE_IMAGE = "images/profile.png";
 
 document.addEventListener("DOMContentLoaded", () => {
   const registerBtn = document.getElementById("profile-register-btn");
