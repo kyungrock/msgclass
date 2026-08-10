@@ -1,58 +1,53 @@
 const STORAGE_KEY = "gnclass-profile-items";
-const DEFAULT_PROFILE_IMAGE = "images/profile.png";
+const DEFAULT_PROFILE_IMAGE = "images/profile-full.png";
 
 document.addEventListener("DOMContentLoaded", () => {
   const registerBtn = document.getElementById("profile-register-btn");
   const imageInput = document.getElementById("profile-image-input");
   const gallery = document.getElementById("profile-gallery");
-  const emptyEl = document.getElementById("profile-empty");
   const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
 
-  const loadItems = () => {
+  const loadExtraItems = () => {
     try {
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      if (Array.isArray(data) && data.length > 0) return data;
+      return Array.isArray(data) ? data.filter((item) => !item.isDefault) : [];
     } catch {
-      /* ignore */
+      return [];
     }
-    return [
-      {
-        id: "default-1",
-        imageData: DEFAULT_PROFILE_IMAGE,
-        createdAt: new Date().toISOString(),
-        isDefault: true,
-      },
-    ];
   };
 
   const saveItems = (items) => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(items.filter((item) => !item.isDefault))
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   };
 
   const render = () => {
-    const items = loadItems();
+    const extras = loadExtraItems();
     gallery.innerHTML = "";
-    emptyEl.hidden = items.length > 0;
 
-    items.forEach((item) => {
+    const defaultCard = document.createElement("article");
+    defaultCard.className = "profile-card";
+    const defaultImg = document.createElement("img");
+    defaultImg.src = DEFAULT_PROFILE_IMAGE;
+    defaultImg.alt = "강남클라스 프로필";
+    defaultCard.appendChild(defaultImg);
+    gallery.appendChild(defaultCard);
+
+    extras.forEach((item) => {
       const card = document.createElement("article");
       card.className = "profile-card";
 
       const img = document.createElement("img");
       img.src = item.imageData;
-      img.alt = "강남클라스 프로필";
+      img.alt = "등록된 프로필 이미지";
       card.appendChild(img);
 
-      if (admin && !item.isDefault) {
+      if (admin) {
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.className = "btn profile-card-remove";
         removeBtn.textContent = "삭제";
         removeBtn.addEventListener("click", () => {
-          const next = loadItems().filter((entry) => entry.id !== item.id);
+          const next = loadExtraItems().filter((entry) => entry.id !== item.id);
           saveItems(next);
           render();
         });
@@ -74,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const reader = new FileReader();
       reader.onload = () => {
-        const current = loadItems().filter((item) => !item.isDefault);
+        const current = loadExtraItems();
         current.unshift({
           id: String(Date.now()),
           imageData: String(reader.result),
