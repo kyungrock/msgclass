@@ -149,6 +149,21 @@ input {
   padding: 28px 16px 56px;
 }
 
+.seo-heading {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: clamp(1.55rem, 5vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.seo-lead {
+  margin: 0 0 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .page-hero {
   text-align: center;
   padding: 28px 0 22px;
