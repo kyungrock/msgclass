@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>금지어 관리 | GN CLASS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo">
+        <span class="logo-en">강남 클라스</span>
+        <span class="logo-ko">msg1000.com</span>
+      </a>
+
+      <button class="menu-toggle" type="button" aria-label="메뉴 열기" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <a href="attendance.html">출근부</a>
+        <a href="reviews.html" class="is-active">후기</a>
+        <a href="profile.html">프로필</a>
+        <a href="notice.html">공지사항</a>
+        <a href="login.html">로그인</a>
+        <a href="signup.html">회원가입</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <a class="back-link" href="reviews.html">← 후기 목록</a>
+    <div class="page-hero">
+      <h1>금지어 관리</h1>
+    </div>
+
+    <p class="page-desc">콤마(,)로 구분해 여러 금지어를 한 번에 등록·수정할 수 있습니다. 예: 야구,농구,수영,섹스</p>
+
+    <form class="banned-form" id="banned-form">
+      <label>
+        금지어 추가 (콤마로 여러 개)
+        <input type="text" id="banned-input" placeholder="예: 야구,농구,수영,섹스" required />
+      </label>
+      <button type="submit" class="btn btn-primary">추가</button>
+    </form>
+
+    <div class="banned-bulk">
+      <label>
+        금지어 전체 (콤마로 관리)
+        <textarea id="banned-text" rows="6" placeholder="야구,농구,수영,섹스"></textarea>
+      </label>
+      <button type="button" class="btn btn-primary" id="banned-save-text">전체 저장</button>
+    </div>
+
+    <div class="board-toolbar">
+      <span class="board-count">전체 <span id="banned-count">0</span></span>
+    </div>
+
+    <ul class="banned-list" id="banned-list"></ul>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; msg1000 강남 클라스</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/banned-words.js"></script>
+  <script src="js/banned-words-page.js"></script>
+</body>
+</html>

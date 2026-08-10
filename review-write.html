@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>후기 등록 | GN CLASS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo">
+        <span class="logo-en">강남 클라스</span>
+        <span class="logo-ko">msg1000.com</span>
+      </a>
+
+      <button class="menu-toggle" type="button" aria-label="메뉴 열기" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <a href="attendance.html">출근부</a>
+        <a href="reviews.html" class="is-active">후기</a>
+        <a href="profile.html">프로필</a>
+        <a href="notice.html">공지사항</a>
+        <a href="login.html">로그인</a>
+        <a href="signup.html">회원가입</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <a class="back-link" href="reviews.html">← 후기 목록</a>
+    <div class="page-hero">
+      <h1>후기 등록</h1>
+    </div>
+
+    <form class="auth-form write-form" id="review-write-form">
+      <label>
+        제목
+        <input type="text" name="title" id="review-title" maxlength="80" required placeholder="제목을 입력하세요" />
+      </label>
+      <label>
+        작성자
+        <input type="text" name="author" id="review-author" maxlength="20" required placeholder="닉네임" />
+      </label>
+      <label>
+        내용
+        <textarea name="body" id="review-body" required placeholder="후기 내용을 입력하세요"></textarea>
+      </label>
+      <button type="submit" class="btn btn-primary auth-submit">등록하기</button>
+    </form>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; msg1000 강남 클라스</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/banned-words.js"></script>
+  <script src="js/review-write.js"></script>
+</body>
+</html>
