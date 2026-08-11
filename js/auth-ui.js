@@ -16,6 +16,7 @@ async function refreshAuthNav() {
   const existingUser = nav.querySelector("[data-auth-user]");
   const existingLogout = nav.querySelector("[data-auth-logout]");
   const existingMembers = nav.querySelector('a[href="members.html"]');
+  const existingBanned = nav.querySelector('a[href="banned-words.html"]');
   const existingPopup = nav.querySelector('a[href="popup.html"]');
 
   if (existingUser) existingUser.remove();
@@ -31,6 +32,7 @@ async function refreshAuthNav() {
     if (loginLink) loginLink.hidden = false;
     if (signupLink) signupLink.hidden = false;
     if (existingMembers) existingMembers.hidden = true;
+    if (existingBanned) existingBanned.hidden = true;
     if (existingPopup) existingPopup.hidden = true;
     return;
   }
@@ -49,6 +51,16 @@ async function refreshAuthNav() {
       existingMembers.hidden = false;
     }
 
+    if (!existingBanned) {
+      const bannedLink = document.createElement("a");
+      bannedLink.href = "banned-words.html";
+      bannedLink.textContent = "금지어";
+      if (/banned-words\.html$/i.test(location.pathname)) bannedLink.classList.add("is-active");
+      nav.appendChild(bannedLink);
+    } else {
+      existingBanned.hidden = false;
+    }
+
     if (!existingPopup) {
       const popupLink = document.createElement("a");
       popupLink.href = "popup.html";
@@ -60,6 +72,7 @@ async function refreshAuthNav() {
     }
   } else {
     if (existingMembers) existingMembers.hidden = true;
+    if (existingBanned) existingBanned.hidden = true;
     if (existingPopup) existingPopup.hidden = true;
   }
 

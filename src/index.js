@@ -417,9 +417,9 @@ async function handlePopupGet(env) {
   if (!row) {
     return json({
       popup: {
-        enabled: true,
-        title: "임시 작업중 입니다.",
-        body: "참고바랍니다.",
+        enabled: false,
+        title: "",
+        body: "",
         updatedAt: null,
       },
     });
