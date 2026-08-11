@@ -1,12 +1,16 @@
 const PROFILE_STORAGE_KEY = "gnclass-profiles";
 
 function loadProfiles() {
+  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
   try {
     const data = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || "[]");
-    return Array.isArray(data) ? data : [];
+    if (Array.isArray(data) && data.length) return data;
   } catch {
-    return [];
+    /* ignore */
   }
+  return typeof NF_PROFILES_SEED !== "undefined" && Array.isArray(NF_PROFILES_SEED)
+    ? [...NF_PROFILES_SEED]
+    : [];
 }
 
 function saveProfiles(items) {

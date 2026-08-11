@@ -1,78 +1,32 @@
 const PROFILE_STORAGE_KEY = "gnclass-profiles";
 
-const DEFAULT_PROFILES = [
-  {
-    id: "sample-1",
-    title: "수애",
-    author: "관리자",
-    body: "강남비너스 프로필입니다.",
-    date: "2026.08.10",
-    createdAt: "2026-08-10T12:00:00.000Z",
-    likes: 0,
-  },
-  {
-    id: "sample-2",
-    title: "보라",
-    author: "관리자",
-    body: "강남비너스 프로필입니다.",
-    date: "2026.08.10",
-    createdAt: "2026-08-10T11:00:00.000Z",
-    likes: 0,
-  },
-  {
-    id: "sample-3",
-    title: "제니",
-    author: "관리자",
-    body: "강남비너스 프로필입니다.",
-    date: "2026.08.10",
-    createdAt: "2026-08-10T10:00:00.000Z",
-    likes: 0,
-  },
-  {
-    id: "sample-4",
-    title: "아영",
-    author: "관리자",
-    body: "강남비너스 프로필입니다.",
-    date: "2026.08.10",
-    createdAt: "2026-08-10T09:00:00.000Z",
-    likes: 0,
-  },
-  {
-    id: "sample-5",
-    title: "소나",
-    author: "관리자",
-    body: "강남비너스 프로필입니다.",
-    date: "2026.08.10",
-    createdAt: "2026-08-10T08:00:00.000Z",
-    likes: 0,
-  },
-  {
-    id: "sample-6",
-    title: "제시",
-    author: "관리자",
-    body: "강남비너스 프로필입니다.",
-    date: "2026.08.10",
-    createdAt: "2026-08-10T07:00:00.000Z",
-    likes: 0,
-  },
-];
+function getDefaultProfiles() {
+  return typeof NF_PROFILES_SEED !== "undefined" && Array.isArray(NF_PROFILES_SEED)
+    ? NF_PROFILES_SEED
+    : [];
+}
 
 function loadProfiles() {
   if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
+  const defaults = getDefaultProfiles();
   try {
     const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(DEFAULT_PROFILES));
-      return [...DEFAULT_PROFILES];
+      if (defaults.length) {
+        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(defaults));
+      }
+      return [...defaults];
     }
     const data = JSON.parse(raw);
     if (!Array.isArray(data) || data.length === 0) {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(DEFAULT_PROFILES));
-      return [...DEFAULT_PROFILES];
+      if (defaults.length) {
+        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(defaults));
+      }
+      return [...defaults];
     }
     return data;
   } catch {
-    return [...DEFAULT_PROFILES];
+    return [...defaults];
   }
 }
 
@@ -81,7 +35,8 @@ function saveProfiles(items) {
 }
 
 function formatMeta(profile) {
-  return `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}`;
+  const views = profile.views != null ? ` | 조회 ${profile.views}` : "";
+  return `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}${views}`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
