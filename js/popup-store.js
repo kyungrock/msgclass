@@ -20,3 +20,10 @@ async function savePopupConfig(config) {
   }
   throw new Error("팝업 API를 사용할 수 없습니다.");
 }
+
+async function deletePopupConfig() {
+  if (typeof deletePopupConfigApi === "function") {
+    return deletePopupConfigApi();
+  }
+  throw new Error("팝업 API를 사용할 수 없습니다.");
+}

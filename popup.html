@@ -46,16 +46,14 @@
     <div class="board-toolbar">
       <span class="board-count">상태 <span id="popup-status">-</span></span>
       <div class="board-toolbar-right">
-        <a class="btn btn-primary" href="popup-write.html">팝업 글 작성</a>
+        <a class="btn btn-primary" id="popup-write-btn" href="popup-write.html">팝업 글 작성</a>
       </div>
     </div>
 
-    <ul class="board-list">
-      <li class="board-item">
-        <a href="popup-write.html">
-          <p class="board-item-title" id="popup-title-preview">-</p>
-          <p class="board-item-meta" id="popup-meta-preview">-</p>
-        </a>
+    <ul class="board-list" id="popup-list">
+      <li class="board-item" id="popup-empty-item">
+        <p class="board-item-title">등록된 팝업이 없습니다.</p>
+        <p class="board-item-meta">팝업 글 작성으로 추가해 주세요.</p>
       </li>
     </ul>
   </main>
@@ -64,11 +62,11 @@
     <p>&copy; msg1000 강남 비너스</p>
   </footer>
 
-  <script src="js/auth-api.js?v=20260811-19"></script>
-  <script src="js/admin-mode.js?v=20260811-19"></script>
-  <script src="js/popup-store.js?v=20260811-19"></script>
-  <script src="js/main.js?v=20260811-19"></script>
-  <script src="js/auth-ui.js?v=20260811-19"></script>
-  <script src="js/popup-admin.js?v=20260811-19"></script>
+  <script src="js/auth-api.js?v=20260811-20"></script>
+  <script src="js/admin-mode.js?v=20260811-20"></script>
+  <script src="js/popup-store.js?v=20260811-20"></script>
+  <script src="js/main.js?v=20260811-20"></script>
+  <script src="js/auth-ui.js?v=20260811-20"></script>
+  <script src="js/popup-admin.js?v=20260811-20"></script>
 </body>
 </html>

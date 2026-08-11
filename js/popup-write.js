@@ -22,11 +22,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const enabledInput = document.getElementById("popup-enabled");
   const submitBtn = form.querySelector('button[type="submit"]');
 
+  const pageTitle = document.querySelector(".page-hero h1");
   try {
     const config = await loadPopupConfig();
     titleInput.value = config.title || "";
     bodyInput.value = config.body || "";
-    enabledInput.checked = config.enabled !== false;
+    enabledInput.checked = !!config.enabled;
+    if (config.title && config.body) {
+      if (pageTitle) pageTitle.textContent = "팝업 수정";
+      if (submitBtn) submitBtn.textContent = "수정하기";
+      document.title = "팝업 수정 | 강남비너스";
+    }
   } catch (err) {
     alert(err.message || "팝업 정보를 불러오지 못했습니다.");
   }

@@ -191,6 +191,10 @@ async function savePopupConfigApi(payload) {
   return data.popup;
 }
 
+async function deletePopupConfigApi() {
+  await authApi("/api/popup", { method: "DELETE" });
+}
+
 async function fetchNotices() {
   const data = await authApi("/api/notices");
   return data.items || [];

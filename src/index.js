@@ -465,6 +465,25 @@ async function handlePopupPut(request, env) {
   return handlePopupGet(env);
 }
 
+async function handlePopupDelete(request, env) {
+  const auth = await requireAdmin(request, env);
+  if (auth.error) return auth.error;
+
+  await env.DB.prepare(
+    `INSERT INTO popup_config (id, enabled, title, body, updated_at)
+     VALUES (1, 0, '', '', ?)
+     ON CONFLICT(id) DO UPDATE SET
+       enabled = 0,
+       title = '',
+       body = '',
+       updated_at = excluded.updated_at`
+  )
+    .bind(new Date().toISOString())
+    .run();
+
+  return json({ ok: true });
+}
+
 async function handleMembersList(request, env) {
   const auth = await requireAdmin(request, env);
   if (auth.error) return auth.error;
@@ -663,6 +682,8 @@ export default {
         response = await handlePopupGet(env);
       } else if (request.method === "PUT" && path === "/api/popup") {
         response = await handlePopupPut(request, env);
+      } else if (request.method === "DELETE" && path === "/api/popup") {
+        response = await handlePopupDelete(request, env);
       } else {
         response = json({ error: "Not found" }, 404);
       }
