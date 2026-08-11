@@ -2,6 +2,13 @@ const ADMIN_STORAGE_KEY = "gnclass-admin-mode";
 
 function isAdminMode() {
   try {
+    const cached =
+      typeof getCachedAuthUser === "function" ? getCachedAuthUser() : null;
+    if (cached && cached.role === "admin" && cached.status !== "banned") {
+      return true;
+    }
+
+    // 하위 호환: 예전 ?admin=1 플래그 (로그인 관리자로 대체 권장)
     const params = new URLSearchParams(window.location.search);
     if (params.get("admin") === "1") {
       localStorage.setItem(ADMIN_STORAGE_KEY, "1");
@@ -11,7 +18,7 @@ function isAdminMode() {
       localStorage.removeItem(ADMIN_STORAGE_KEY);
       return false;
     }
-    return localStorage.getItem(ADMIN_STORAGE_KEY) === "1";
+    return false;
   } catch {
     return false;
   }

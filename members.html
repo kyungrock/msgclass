@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>공지 등록 | GN CLASS</title>
+  <title>회원관리 | 강남비너스</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -29,34 +29,38 @@
         <a href="attendance.html">출근부</a>
         <a href="reviews.html">후기</a>
         <a href="profile.html">프로필</a>
-        <a href="notice.html" class="is-active">공지사항</a>
+        <a href="notice.html">공지사항</a>
         <a href="login.html">로그인</a>
         <a href="signup.html">회원가입</a>
+        <a href="members.html" class="is-active">회원관리</a>
       </nav>
     </div>
   </header>
 
   <main class="page">
-    <a class="back-link" href="notice.html">← 공지사항 목록</a>
     <div class="page-hero">
-      <h1>공지 등록</h1>
+      <h1>회원관리</h1>
+      <p class="page-lead">가입 회원 목록을 관리합니다.</p>
     </div>
 
-    <form class="auth-form write-form" id="notice-write-form">
-      <label>
-        제목
-        <input type="text" name="title" id="notice-title" maxlength="80" required placeholder="제목을 입력하세요" />
-      </label>
-      <label>
-        작성자
-        <input type="text" name="author" id="notice-author" maxlength="20" required placeholder="닉네임" />
-      </label>
-      <label>
-        내용
-        <textarea name="body" id="notice-body" required placeholder="공지 내용을 입력하세요"></textarea>
-      </label>
-      <button type="submit" class="btn btn-primary auth-submit">등록하기</button>
-    </form>
+    <p class="auth-error" id="members-error" hidden></p>
+    <div class="members-table-wrap">
+      <table class="members-table" id="members-table">
+        <thead>
+          <tr>
+            <th>아이디</th>
+            <th>닉네임</th>
+            <th>권한</th>
+            <th>상태</th>
+            <th>가입일</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="members-body">
+          <tr><td colspan="6">불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -64,8 +68,9 @@
   </footer>
 
   <script src="js/auth-api.js?v=20260811-12"></script>
+  <script src="js/admin-mode.js?v=20260811-12"></script>
   <script src="js/main.js?v=20260811-12"></script>
   <script src="js/auth-ui.js?v=20260811-12"></script>
-  <script src="js/notice-write.js?v=20260811-12"></script>
+  <script src="js/members.js?v=20260811-12"></script>
 </body>
 </html>
