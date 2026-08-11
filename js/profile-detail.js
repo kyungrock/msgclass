@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("detail-meta").textContent =
     `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}`;
   document.getElementById("detail-body").textContent = profile.body;
-  document.title = `${profile.title} | 강남클라스`;
+  document.title = `${profile.title} | 강남비너스`;
 
   if (admin && editLink) {
     editLink.href = `profile-write.html?id=${encodeURIComponent(profile.id)}`;

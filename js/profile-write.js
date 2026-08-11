@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     bodyInput.value = item.body || "";
     if (pageTitle) pageTitle.textContent = "프로필 수정";
     if (submitBtn) submitBtn.textContent = "수정하기";
-    document.title = "프로필 수정 | 강남클라스";
+    document.title = "프로필 수정 | 강남비너스";
   }
 
   form.addEventListener("submit", (e) => {
