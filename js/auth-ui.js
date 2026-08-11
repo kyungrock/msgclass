@@ -16,6 +16,7 @@ async function refreshAuthNav() {
   const existingUser = nav.querySelector("[data-auth-user]");
   const existingLogout = nav.querySelector("[data-auth-logout]");
   const existingMembers = nav.querySelector('a[href="members.html"]');
+  const existingPopup = nav.querySelector('a[href="popup.html"]');
 
   if (existingUser) existingUser.remove();
   if (existingLogout) existingLogout.remove();
@@ -30,6 +31,7 @@ async function refreshAuthNav() {
     if (loginLink) loginLink.hidden = false;
     if (signupLink) signupLink.hidden = false;
     if (existingMembers) existingMembers.hidden = true;
+    if (existingPopup) existingPopup.hidden = true;
     return;
   }
 
@@ -46,8 +48,19 @@ async function refreshAuthNav() {
     } else {
       existingMembers.hidden = false;
     }
-  } else if (existingMembers) {
-    existingMembers.hidden = true;
+
+    if (!existingPopup) {
+      const popupLink = document.createElement("a");
+      popupLink.href = "popup.html";
+      popupLink.textContent = "팝업관리";
+      if (/popup(-write)?\.html$/i.test(location.pathname)) popupLink.classList.add("is-active");
+      nav.appendChild(popupLink);
+    } else {
+      existingPopup.hidden = false;
+    }
+  } else {
+    if (existingMembers) existingMembers.hidden = true;
+    if (existingPopup) existingPopup.hidden = true;
   }
 
   const nameEl = document.createElement("span");

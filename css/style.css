@@ -710,6 +710,18 @@ input {
   font-size: 0.9rem;
 }
 
+.popup-enabled-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  color: #fff !important;
+  flex-direction: row !important;
+}
+
+.popup-enabled-label input {
+  width: auto;
+}
+
 .site-nav .nav-user {
   color: var(--muted);
   font-size: 0.9rem;

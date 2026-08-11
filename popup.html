@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>후기 등록 | GN CLASS</title>
+  <title>팝업 관리 | 강남비너스</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -27,34 +27,37 @@
 
       <nav class="site-nav" aria-label="주요 메뉴">
         <a href="attendance.html">출근부</a>
-        <a href="reviews.html" class="is-active">후기</a>
+        <a href="reviews.html">후기</a>
         <a href="profile.html">프로필</a>
         <a href="notice.html">공지사항</a>
         <a href="login.html">로그인</a>
         <a href="signup.html">회원가입</a>
+        <a href="popup.html" class="is-active">팝업관리</a>
       </nav>
     </div>
   </header>
 
   <main class="page">
-    <a class="back-link" href="reviews.html">← 후기 목록</a>
     <div class="page-hero">
-      <h1>후기 등록</h1>
+      <h1>팝업 관리</h1>
+      <p class="page-lead">메인 페이지에 표시되는 팝업 내용을 관리합니다.</p>
     </div>
 
-    <form class="auth-form write-form" id="review-write-form">
-      <label>
-        제목
-        <input type="text" name="title" id="review-title" maxlength="80" required placeholder="제목을 입력하세요" />
-      </label>
-      <p class="write-author-note" id="review-author-note">작성자: -</p>
-      <input type="hidden" name="author" id="review-author" />
-      <label>
-        내용
-        <textarea name="body" id="review-body" required placeholder="후기 내용을 입력하세요"></textarea>
-      </label>
-      <button type="submit" class="btn btn-primary auth-submit">등록하기</button>
-    </form>
+    <div class="board-toolbar">
+      <span class="board-count">상태 <span id="popup-status">-</span></span>
+      <div class="board-toolbar-right">
+        <a class="btn btn-primary" href="popup-write.html">팝업 글 작성</a>
+      </div>
+    </div>
+
+    <ul class="board-list">
+      <li class="board-item">
+        <a href="popup-write.html">
+          <p class="board-item-title" id="popup-title-preview">-</p>
+          <p class="board-item-meta" id="popup-meta-preview">-</p>
+        </a>
+      </li>
+    </ul>
   </main>
 
   <footer class="site-footer">
@@ -63,9 +66,9 @@
 
   <script src="js/auth-api.js?v=20260811-16"></script>
   <script src="js/admin-mode.js?v=20260811-16"></script>
+  <script src="js/popup-store.js?v=20260811-16"></script>
   <script src="js/main.js?v=20260811-16"></script>
   <script src="js/auth-ui.js?v=20260811-16"></script>
-  <script src="js/banned-words.js?v=20260811-16"></script>
-  <script src="js/review-write.js?v=20260811-16"></script>
+  <script src="js/popup-admin.js?v=20260811-16"></script>
 </body>
 </html>

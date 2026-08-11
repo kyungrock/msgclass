@@ -8,5 +8,9 @@ Disallow: /attendance-write.html
 Disallow: /reviews-admin.html
 Disallow: /review-write.html
 Disallow: /notice-write.html
+Disallow: /members.html
+Disallow: /popup.html
+Disallow: /popup-write.html
+Disallow: /profile-write.html
 
 Sitemap: https://msg1000.com/sitemap.xml
