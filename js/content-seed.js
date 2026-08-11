@@ -1,4 +1,4 @@
-const CONTENT_VERSION = "2026-08-11-v5";
+const CONTENT_VERSION = "2026-08-11-v6";
 const CONTENT_VERSION_KEY = "gnclass-content-version";
 
 const SEED_PROFILES = [
@@ -67,7 +67,7 @@ function syncSiteContentVersion() {
         JSON.stringify([
           {
             id: "sample-1",
-            title: "NF희나 NF유정 다인 우리 민주 소이 다윤 윤진 제시 제니 아영 시연",
+            title: "NF희나, NF유정, 다인, 우리, 민주, 소이, 다윤, 윤진, 제시, 제니, 아영, 시연",
             createdAt: "2026-08-10T12:00:00.000Z",
           },
         ])
@@ -122,7 +122,7 @@ function syncSiteContentVersion() {
         JSON.stringify([
           {
             id: "sample-1",
-            title: "NF희나 NF유정 다인 우리 민주 소이 다윤 윤진 제시 제니 아영 시연",
+            title: "NF희나, NF유정, 다인, 우리, 민주, 소이, 다윤, 윤진, 제시, 제니, 아영, 시연",
             createdAt: "2026-08-10T12:00:00.000Z",
           },
         ])
