@@ -59,6 +59,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (typeof findBannedWordInText === "function") {
+      const bannedInBody = findBannedWordInText(body);
+      if (bannedInBody) {
+        alert(`${bannedInBody} 금지어가 있습니다.`);
+        return;
+      }
+      const bannedInTitle = findBannedWordInText(title);
+      if (bannedInTitle) {
+        alert(`${bannedInTitle} 금지어가 있습니다.`);
+        return;
+      }
+    }
+
     const items = loadProfiles();
 
     if (editId) {
