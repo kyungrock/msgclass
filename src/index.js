@@ -143,7 +143,7 @@ async function ensureAdmin(env) {
   if (existing) return;
 
   const username = String(env.ADMIN_USERNAME || "admin").trim().toLowerCase();
-  const password = String(env.ADMIN_BOOTSTRAP_PASSWORD || "admin1234");
+  const password = String(env.ADMIN_BOOTSTRAP_PASSWORD || "admin1218");
   const nickname = String(env.ADMIN_NICKNAME || "관리자");
   const salt = randomHex(16);
   const hash = await hashPassword(password, salt);
