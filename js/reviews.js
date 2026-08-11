@@ -1,29 +1,32 @@
 const REVIEW_STORAGE_KEY = "gnclass-reviews";
 
-const DEFAULT_REVIEWS = [
-  {
-    id: "sample-1",
-    title: "수애",
-    author: "손님",
-    body: "정성스럽게 너무 좋았어요",
-    date: "2026.08.10",
-    createdAt: new Date().toISOString(),
-    likes: 0,
-  },
-];
+function getDefaultReviews() {
+  return typeof BANGMUN_REVIEWS_SEED !== "undefined" && Array.isArray(BANGMUN_REVIEWS_SEED)
+    ? BANGMUN_REVIEWS_SEED
+    : [];
+}
 
 function loadReviews() {
   if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
+  const defaults = getDefaultReviews();
   try {
     const raw = localStorage.getItem(REVIEW_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(DEFAULT_REVIEWS));
-      return [...DEFAULT_REVIEWS];
+      if (defaults.length) {
+        localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(defaults));
+      }
+      return [...defaults];
     }
     const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [...DEFAULT_REVIEWS];
+    if (!Array.isArray(data) || data.length === 0) {
+      if (defaults.length) {
+        localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(defaults));
+      }
+      return [...defaults];
+    }
+    return data;
   } catch {
-    return [...DEFAULT_REVIEWS];
+    return [...defaults];
   }
 }
 
@@ -32,7 +35,8 @@ function saveReviews(items) {
 }
 
 function formatMeta(review) {
-  return `${review.author} | ${review.date} | 추천 ${review.likes || 0}`;
+  const views = review.views != null ? ` | 조회 ${review.views}` : "";
+  return `${review.author} | ${review.date} | 추천 ${review.likes || 0}${views}`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

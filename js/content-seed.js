@@ -1,4 +1,4 @@
-const CONTENT_VERSION = "2026-08-11-v9";
+const CONTENT_VERSION = "2026-08-11-v10";
 const CONTENT_VERSION_KEY = "gnclass-content-version";
 
 function getSeedProfiles() {
@@ -7,10 +7,17 @@ function getSeedProfiles() {
     : [];
 }
 
+function getSeedReviews() {
+  return typeof BANGMUN_REVIEWS_SEED !== "undefined" && Array.isArray(BANGMUN_REVIEWS_SEED)
+    ? BANGMUN_REVIEWS_SEED
+    : [];
+}
+
 function syncSiteContentVersion() {
   try {
     const current = localStorage.getItem(CONTENT_VERSION_KEY);
     const seedProfiles = getSeedProfiles();
+    const seedReviews = getSeedReviews();
 
     if (current !== CONTENT_VERSION) {
       localStorage.setItem(
@@ -24,20 +31,9 @@ function syncSiteContentVersion() {
         ])
       );
 
-      localStorage.setItem(
-        "gnclass-reviews",
-        JSON.stringify([
-          {
-            id: "sample-1",
-            title: "수애",
-            author: "손님",
-            body: "정성스럽게 너무 좋았어요",
-            date: "2026.08.10",
-            createdAt: "2026-08-10T12:00:00.000Z",
-            likes: 0,
-          },
-        ])
-      );
+      if (seedReviews.length) {
+        localStorage.setItem("gnclass-reviews", JSON.stringify(seedReviews));
+      }
 
       localStorage.setItem(
         "gnclass-notices",
@@ -61,7 +57,6 @@ function syncSiteContentVersion() {
       localStorage.setItem(CONTENT_VERSION_KEY, CONTENT_VERSION);
     }
 
-    // 출근부/프로필이 비어 있으면 기본글 채움
     const attendanceRaw = localStorage.getItem("gnclass-attendance");
     let attendance = [];
     try {
@@ -91,6 +86,17 @@ function syncSiteContentVersion() {
     }
     if ((!Array.isArray(profiles) || profiles.length === 0) && seedProfiles.length) {
       localStorage.setItem("gnclass-profiles", JSON.stringify(seedProfiles));
+    }
+
+    const reviewsRaw = localStorage.getItem("gnclass-reviews");
+    let reviews = [];
+    try {
+      reviews = JSON.parse(reviewsRaw || "[]");
+    } catch {
+      reviews = [];
+    }
+    if ((!Array.isArray(reviews) || reviews.length === 0) && seedReviews.length) {
+      localStorage.setItem("gnclass-reviews", JSON.stringify(seedReviews));
     }
   } catch {
     /* ignore */

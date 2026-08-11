@@ -1,12 +1,16 @@
 const REVIEW_STORAGE_KEY = "gnclass-reviews";
 
 function loadReviews() {
+  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
   try {
     const data = JSON.parse(localStorage.getItem(REVIEW_STORAGE_KEY) || "[]");
-    return Array.isArray(data) ? data : [];
+    if (Array.isArray(data) && data.length) return data;
   } catch {
-    return [];
+    /* ignore */
   }
+  return typeof BANGMUN_REVIEWS_SEED !== "undefined" && Array.isArray(BANGMUN_REVIEWS_SEED)
+    ? [...BANGMUN_REVIEWS_SEED]
+    : [];
 }
 
 function saveReviews(items) {
@@ -30,10 +34,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("detail-title").textContent = review.title;
+  const views = review.views != null ? ` | 조회 ${review.views}` : "";
   document.getElementById("detail-meta").textContent =
-    `${review.author} | ${review.date} | 추천 ${review.likes || 0}`;
+    `${review.author} | ${review.date} | 추천 ${review.likes || 0}${views}`;
   document.getElementById("detail-body").textContent = review.body;
-  document.title = `${review.title} | GN CLASS`;
+  document.title = `${review.title} | 강남비너스`;
 
   if (admin && editLink) {
     editLink.href = `review-write.html?id=${encodeURIComponent(review.id)}`;
