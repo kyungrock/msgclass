@@ -37,53 +37,58 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  const config =
-    typeof loadPopupConfig === "function"
-      ? loadPopupConfig()
-      : { enabled: true, title: "임시 작업중 입니다.", body: "참고바랍니다." };
+  const showPopup = (config) => {
+    if (!config || !config.enabled) return;
 
-  if (!config.enabled) return;
+    const overlay = document.createElement("div");
+    overlay.id = "site-popup";
+    overlay.className = "site-popup";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-labelledby", "site-popup-title");
 
-  const overlay = document.createElement("div");
-  overlay.id = "site-popup";
-  overlay.className = "site-popup";
-  overlay.setAttribute("role", "dialog");
-  overlay.setAttribute("aria-modal", "true");
-  overlay.setAttribute("aria-labelledby", "site-popup-title");
+    const panel = document.createElement("div");
+    panel.className = "site-popup-panel";
 
-  const panel = document.createElement("div");
-  panel.className = "site-popup-panel";
+    const titleEl = document.createElement("p");
+    titleEl.className = "site-popup-title";
+    titleEl.id = "site-popup-title";
+    titleEl.textContent = config.title || "알림";
 
-  const titleEl = document.createElement("p");
-  titleEl.className = "site-popup-title";
-  titleEl.id = "site-popup-title";
-  titleEl.textContent = config.title || "알림";
+    const bodyEl = document.createElement("p");
+    bodyEl.className = "site-popup-text";
+    bodyEl.textContent = config.body || "";
 
-  const bodyEl = document.createElement("p");
-  bodyEl.className = "site-popup-text";
-  bodyEl.textContent = config.body || "";
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "btn btn-primary site-popup-close";
+    closeBtn.textContent = "확인";
 
-  const closeBtn = document.createElement("button");
-  closeBtn.type = "button";
-  closeBtn.className = "btn btn-primary site-popup-close";
-  closeBtn.textContent = "확인";
+    panel.appendChild(titleEl);
+    panel.appendChild(bodyEl);
+    panel.appendChild(closeBtn);
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
 
-  panel.appendChild(titleEl);
-  panel.appendChild(bodyEl);
-  panel.appendChild(closeBtn);
-  overlay.appendChild(panel);
-  document.body.appendChild(overlay);
+    const closePopup = () => {
+      sessionStorage.setItem(popupKey, "1");
+      overlay.classList.add("is-hidden");
+    };
 
-  const closePopup = () => {
-    sessionStorage.setItem(popupKey, "1");
-    overlay.classList.add("is-hidden");
+    closeBtn.addEventListener("click", closePopup);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closePopup();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closePopup();
+    });
   };
 
-  closeBtn.addEventListener("click", closePopup);
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) closePopup();
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closePopup();
-  });
+  if (typeof loadPopupConfig === "function") {
+    void loadPopupConfig()
+      .then(showPopup)
+      .catch(() => {
+        /* ignore popup errors */
+      });
+  }
 });

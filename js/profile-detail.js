@@ -1,32 +1,15 @@
-const PROFILE_STORAGE_KEY = "gnclass-profiles";
-
-function loadProfiles() {
-  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
-  try {
-    const data = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || "[]");
-    if (Array.isArray(data) && data.length) return data;
-  } catch {
-    /* ignore */
-  }
-  return typeof NF_PROFILES_SEED !== "undefined" && Array.isArray(NF_PROFILES_SEED)
-    ? [...NF_PROFILES_SEED]
-    : [];
-}
-
-function saveProfiles(items) {
-  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(items));
-}
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
-  const profiles = loadProfiles();
-  const profile = profiles.find((item) => item.id === id) || profiles[0];
   const editLink = document.getElementById("detail-edit");
   const deleteBtn = document.getElementById("detail-delete");
   const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
 
-  if (!profile) {
+  let profile = null;
+  try {
+    if (!id) throw new Error("missing id");
+    profile = await fetchProfile(id);
+  } catch {
     document.getElementById("detail-title").textContent = "프로필을 찾을 수 없습니다";
     document.getElementById("detail-meta").textContent = "";
     document.getElementById("detail-body").textContent = "목록으로 돌아가 다시 선택해 주세요.";
@@ -34,8 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("detail-title").textContent = profile.title;
+  const views = profile.views != null ? ` | 조회 ${profile.views}` : "";
   document.getElementById("detail-meta").textContent =
-    `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}`;
+    `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}${views}`;
   document.getElementById("detail-body").textContent = profile.body;
   document.title = `${profile.title} | 강남비너스`;
 
@@ -44,11 +28,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (admin && deleteBtn) {
-    deleteBtn.addEventListener("click", () => {
+    deleteBtn.addEventListener("click", async () => {
       if (!confirm("이 프로필을 삭제할까요?")) return;
-      const next = loadProfiles().filter((item) => item.id !== profile.id);
-      saveProfiles(next);
-      window.location.href = "profile.html";
+      try {
+        await deleteProfile(profile.id);
+        window.location.href = "profile.html";
+      } catch (err) {
+        alert(err.message || "삭제에 실패했습니다.");
+      }
     });
   }
 });

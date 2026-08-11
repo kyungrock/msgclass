@@ -22,7 +22,7 @@ function corsHeaders(request, env) {
   const origin = request.headers.get("Origin") || "";
   const allowed = parseOrigins(env);
   const headers = {
-    "access-control-allow-methods": "GET,POST,PATCH,DELETE,OPTIONS",
+    "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
     "access-control-allow-headers": "content-type,authorization",
     "access-control-max-age": "86400",
     vary: "Origin",
@@ -257,12 +257,198 @@ async function handleMe(request, env) {
   return json({ user: publicUser(user) });
 }
 
-async function requireAdmin(request, env) {
+async function requireMember(request, env) {
   const user = await getUserByToken(env, getBearerToken(request));
   if (!user) return { error: json({ error: "로그인이 필요합니다." }, 401) };
   if (user.status === "banned") return { error: json({ error: "정지된 계정입니다." }, 403) };
-  if (user.role !== "admin") return { error: json({ error: "관리자만 접근할 수 있습니다." }, 403) };
   return { user };
+}
+
+async function requireAdmin(request, env) {
+  const auth = await requireMember(request, env);
+  if (auth.error) return auth;
+  if (auth.user.role !== "admin") {
+    return { error: json({ error: "관리자만 접근할 수 있습니다." }, 403) };
+  }
+  return auth;
+}
+
+function publicPost(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    author: row.author,
+    body: row.body,
+    date: row.date,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    likes: row.likes || 0,
+    views: row.views || 0,
+    userId: row.user_id,
+  };
+}
+
+function formatDateKo(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}.${m}.${d}`;
+}
+
+async function listPosts(env, table) {
+  const { results } = await env.DB.prepare(
+    `SELECT * FROM ${table} ORDER BY created_at DESC, id DESC`
+  ).all();
+  return (results || []).map(publicPost);
+}
+
+async function getPost(env, table, id) {
+  const row = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`)
+    .bind(id)
+    .first();
+  return row ? publicPost(row) : null;
+}
+
+async function handleBoardList(env, table) {
+  const items = await listPosts(env, table);
+  return json({ items });
+}
+
+async function handleBoardGet(env, table, id) {
+  const item = await getPost(env, table, id);
+  if (!item) return json({ error: "글을 찾을 수 없습니다." }, 404);
+  return json({ item });
+}
+
+async function handleBoardCreate(request, env, table) {
+  const auth = await requireMember(request, env);
+  if (auth.error) return auth.error;
+
+  const body = await readJson(request);
+  if (!body) return json({ error: "잘못된 요청입니다." }, 400);
+
+  const title = String(body.title || "").trim();
+  const content = String(body.body || "").trim();
+  if (!title || !content) {
+    return json({ error: "제목과 내용을 입력해 주세요." }, 400);
+  }
+  if (title.length > 120) return json({ error: "제목이 너무 깁니다." }, 400);
+  if (content.length > 10000) return json({ error: "내용이 너무 깁니다." }, 400);
+
+  const author = String(auth.user.nickname || auth.user.username);
+  const id = `${Date.now()}-${randomHex(4)}`;
+  const createdAt = new Date().toISOString();
+  const date = formatDateKo();
+
+  await env.DB.prepare(
+    `INSERT INTO ${table}
+      (id, title, author, body, date, created_at, likes, views, user_id)
+     VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)`
+  )
+    .bind(id, title, author, content, date, createdAt, auth.user.id)
+    .run();
+
+  const item = await getPost(env, table, id);
+  return json({ item }, 201);
+}
+
+async function handleBoardPatch(request, env, table, id) {
+  const auth = await requireAdmin(request, env);
+  if (auth.error) return auth.error;
+
+  const existing = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`)
+    .bind(id)
+    .first();
+  if (!existing) return json({ error: "글을 찾을 수 없습니다." }, 404);
+
+  const body = await readJson(request);
+  if (!body) return json({ error: "잘못된 요청입니다." }, 400);
+
+  const title = body.title != null ? String(body.title).trim() : existing.title;
+  const content = body.body != null ? String(body.body).trim() : existing.body;
+  const author =
+    body.author != null ? String(body.author).trim() : existing.author;
+
+  if (!title || !content) {
+    return json({ error: "제목과 내용을 입력해 주세요." }, 400);
+  }
+
+  await env.DB.prepare(
+    `UPDATE ${table}
+     SET title = ?, author = ?, body = ?, updated_at = ?
+     WHERE id = ?`
+  )
+    .bind(title, author, content, new Date().toISOString(), id)
+    .run();
+
+  const item = await getPost(env, table, id);
+  return json({ item });
+}
+
+async function handleBoardDelete(request, env, table, id) {
+  const auth = await requireAdmin(request, env);
+  if (auth.error) return auth.error;
+
+  const existing = await env.DB.prepare(`SELECT id FROM ${table} WHERE id = ?`)
+    .bind(id)
+    .first();
+  if (!existing) return json({ error: "글을 찾을 수 없습니다." }, 404);
+
+  await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
+  return json({ ok: true });
+}
+
+async function handlePopupGet(env) {
+  const row = await env.DB.prepare(`SELECT * FROM popup_config WHERE id = 1`).first();
+  if (!row) {
+    return json({
+      popup: {
+        enabled: true,
+        title: "임시 작업중 입니다.",
+        body: "참고바랍니다.",
+        updatedAt: null,
+      },
+    });
+  }
+  return json({
+    popup: {
+      enabled: !!row.enabled,
+      title: row.title,
+      body: row.body,
+      updatedAt: row.updated_at,
+    },
+  });
+}
+
+async function handlePopupPut(request, env) {
+  const auth = await requireAdmin(request, env);
+  if (auth.error) return auth.error;
+
+  const body = await readJson(request);
+  if (!body) return json({ error: "잘못된 요청입니다." }, 400);
+
+  const title = String(body.title || "").trim();
+  const content = String(body.body || "").trim();
+  if (!title || !content) {
+    return json({ error: "제목과 내용을 입력해 주세요." }, 400);
+  }
+
+  const enabled = body.enabled !== false ? 1 : 0;
+  const updatedAt = new Date().toISOString();
+
+  await env.DB.prepare(
+    `INSERT INTO popup_config (id, enabled, title, body, updated_at)
+     VALUES (1, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       enabled = excluded.enabled,
+       title = excluded.title,
+       body = excluded.body,
+       updated_at = excluded.updated_at`
+  )
+    .bind(enabled, title, content, updatedAt)
+    .run();
+
+  return handlePopupGet(env);
 }
 
 async function handleMembersList(request, env) {
@@ -375,6 +561,50 @@ export default {
       } else if (request.method === "DELETE" && /^\/api\/members\/\d+$/.test(path)) {
         const id = Number(path.split("/").pop());
         response = await handleMemberDelete(request, env, id);
+      } else if (request.method === "GET" && path === "/api/reviews") {
+        response = await handleBoardList(env, "reviews");
+      } else if (request.method === "POST" && path === "/api/reviews") {
+        response = await handleBoardCreate(request, env, "reviews");
+      } else if (request.method === "GET" && /^\/api\/reviews\/[^/]+$/.test(path)) {
+        response = await handleBoardGet(env, "reviews", decodeURIComponent(path.split("/").pop()));
+      } else if (request.method === "PATCH" && /^\/api\/reviews\/[^/]+$/.test(path)) {
+        response = await handleBoardPatch(
+          request,
+          env,
+          "reviews",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "DELETE" && /^\/api\/reviews\/[^/]+$/.test(path)) {
+        response = await handleBoardDelete(
+          request,
+          env,
+          "reviews",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "GET" && path === "/api/profiles") {
+        response = await handleBoardList(env, "profiles");
+      } else if (request.method === "POST" && path === "/api/profiles") {
+        response = await handleBoardCreate(request, env, "profiles");
+      } else if (request.method === "GET" && /^\/api\/profiles\/[^/]+$/.test(path)) {
+        response = await handleBoardGet(env, "profiles", decodeURIComponent(path.split("/").pop()));
+      } else if (request.method === "PATCH" && /^\/api\/profiles\/[^/]+$/.test(path)) {
+        response = await handleBoardPatch(
+          request,
+          env,
+          "profiles",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "DELETE" && /^\/api\/profiles\/[^/]+$/.test(path)) {
+        response = await handleBoardDelete(
+          request,
+          env,
+          "profiles",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "GET" && path === "/api/popup") {
+        response = await handlePopupGet(env);
+      } else if (request.method === "PUT" && path === "/api/popup") {
+        response = await handlePopupPut(request, env);
       } else {
         response = json({ error: "Not found" }, 404);
       }

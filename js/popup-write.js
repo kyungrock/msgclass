@@ -20,13 +20,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const titleInput = document.getElementById("popup-title");
   const bodyInput = document.getElementById("popup-body");
   const enabledInput = document.getElementById("popup-enabled");
-  const config = loadPopupConfig();
+  const submitBtn = form.querySelector('button[type="submit"]');
 
-  titleInput.value = config.title || "";
-  bodyInput.value = config.body || "";
-  enabledInput.checked = config.enabled !== false;
+  try {
+    const config = await loadPopupConfig();
+    titleInput.value = config.title || "";
+    bodyInput.value = config.body || "";
+    enabledInput.checked = config.enabled !== false;
+  } catch (err) {
+    alert(err.message || "팝업 정보를 불러오지 못했습니다.");
+  }
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const title = titleInput.value.trim();
     const body = bodyInput.value.trim();
@@ -35,20 +40,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    savePopupConfig({
-      enabled: enabledInput.checked,
-      title,
-      body,
-    });
-
-    // 내용이 바뀌면 방문자가 다시 볼 수 있도록 세션 dismiss 초기화
+    if (submitBtn) submitBtn.disabled = true;
     try {
-      sessionStorage.removeItem("gnclass-popup-dismissed");
-    } catch {
-      /* ignore */
+      await savePopupConfig({
+        enabled: enabledInput.checked,
+        title,
+        body,
+      });
+      try {
+        sessionStorage.removeItem("gnclass-popup-dismissed");
+      } catch {
+        /* ignore */
+      }
+      alert("팝업이 저장되었습니다.");
+      window.location.href = "popup.html";
+    } catch (err) {
+      alert(err.message || "저장에 실패했습니다.");
+      if (submitBtn) submitBtn.disabled = false;
     }
-
-    alert("팝업이 저장되었습니다.");
-    window.location.href = "popup.html";
   });
 });

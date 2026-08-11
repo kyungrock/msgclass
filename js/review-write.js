@@ -1,25 +1,3 @@
-const REVIEW_STORAGE_KEY = "gnclass-reviews";
-
-function loadReviews() {
-  try {
-    const data = JSON.parse(localStorage.getItem(REVIEW_STORAGE_KEY) || "[]");
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveReviews(items) {
-  localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(items));
-}
-
-function formatDate(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}.${m}.${d}`;
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("review-write-form");
   if (!form) return;
@@ -59,25 +37,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = "reviews.html";
       return;
     }
-    const item = loadReviews().find((entry) => entry.id === editId);
-    if (!item) {
+    try {
+      const item = await fetchReview(editId);
+      titleInput.value = item.title || "";
+      bodyInput.value = item.body || "";
+      if (authorInput) authorInput.value = item.author || authorName;
+      if (authorNote) authorNote.textContent = `작성자: ${item.author || authorName}`;
+      if (pageTitle) pageTitle.textContent = "후기 수정";
+      if (submitBtn) submitBtn.textContent = "수정하기";
+      document.title = "후기 수정 | 강남비너스";
+    } catch {
       alert("수정할 후기를 찾을 수 없습니다.");
       window.location.href = "reviews.html";
       return;
     }
-    titleInput.value = item.title || "";
-    bodyInput.value = item.body || "";
-    if (authorInput) authorInput.value = item.author || authorName;
-    if (authorNote) authorNote.textContent = `작성자: ${item.author || authorName}`;
-    if (pageTitle) pageTitle.textContent = "후기 수정";
-    if (submitBtn) submitBtn.textContent = "수정하기";
-    document.title = "후기 수정 | 강남비너스";
   }
 
   const backLink = document.querySelector(".back-link");
   if (backLink) backLink.href = "reviews.html";
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const title = titleInput.value.trim();
@@ -102,37 +81,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    const items = loadReviews();
-
-    if (editId) {
-      const index = items.findIndex((entry) => entry.id === editId);
-      if (index < 0) {
-        alert("수정할 후기를 찾을 수 없습니다.");
-        return;
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      if (editId) {
+        await updateReview(editId, { title, author, body });
+      } else {
+        await createReview({ title, body });
       }
-      items[index] = {
-        ...items[index],
-        title,
-        author,
-        body,
-        updatedAt: new Date().toISOString(),
-      };
-      saveReviews(items);
       window.location.href = "reviews.html";
-      return;
+    } catch (err) {
+      alert(err.message || "저장에 실패했습니다.");
+      if (submitBtn) submitBtn.disabled = false;
     }
-
-    items.unshift({
-      id: String(Date.now()),
-      title,
-      author,
-      body,
-      date: formatDate(),
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      userId: user.id,
-    });
-    saveReviews(items);
-    window.location.href = "reviews.html";
   });
 });

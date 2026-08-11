@@ -14,15 +14,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const config = loadPopupConfig();
   const statusEl = document.getElementById("popup-status");
   const titleEl = document.getElementById("popup-title-preview");
   const metaEl = document.getElementById("popup-meta-preview");
 
-  if (statusEl) statusEl.textContent = config.enabled ? "표시중" : "숨김";
-  if (titleEl) titleEl.textContent = config.title;
-  if (metaEl) {
-    const date = String(config.updatedAt || "").slice(0, 10).replace(/-/g, ".");
-    metaEl.textContent = `${config.enabled ? "표시중" : "숨김"} | 수정 ${date || "-"}`;
+  try {
+    const config = await loadPopupConfig();
+    if (statusEl) statusEl.textContent = config.enabled ? "표시중" : "숨김";
+    if (titleEl) titleEl.textContent = config.title;
+    if (metaEl) {
+      const date = String(config.updatedAt || "").slice(0, 10).replace(/-/g, ".");
+      metaEl.textContent = `${config.enabled ? "표시중" : "숨김"} | 수정 ${date || "-"}`;
+    }
+  } catch (err) {
+    if (titleEl) titleEl.textContent = "불러오기 실패";
+    if (metaEl) metaEl.textContent = err.message || "오류";
   }
 });

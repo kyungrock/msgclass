@@ -1,42 +1,6 @@
-const PROFILE_STORAGE_KEY = "gnclass-profiles";
-
-function getDefaultProfiles() {
-  return typeof NF_PROFILES_SEED !== "undefined" && Array.isArray(NF_PROFILES_SEED)
-    ? NF_PROFILES_SEED
-    : [];
-}
-
-function loadProfiles() {
-  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
-  const defaults = getDefaultProfiles();
-  try {
-    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-    if (!raw) {
-      if (defaults.length) {
-        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(defaults));
-      }
-      return [...defaults];
-    }
-    const data = JSON.parse(raw);
-    if (!Array.isArray(data) || data.length === 0) {
-      if (defaults.length) {
-        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(defaults));
-      }
-      return [...defaults];
-    }
-    return data;
-  } catch {
-    return [...defaults];
-  }
-}
-
-function saveProfiles(items) {
-  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(items));
-}
-
-function formatMeta(profile) {
-  const views = profile.views != null ? ` | 조회 ${profile.views}` : "";
-  return `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}${views}`;
+function formatMeta(item) {
+  const views = item.views != null ? ` | 조회 ${item.views}` : "";
+  return `${item.author} | ${item.date} | 추천 ${item.likes || 0}${views}`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -47,11 +11,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!listEl) return;
 
-  const render = () => {
+  const render = async () => {
     const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
-    let items = loadProfiles();
-    const sort = sortEl ? sortEl.value : "newest";
+    let items = [];
+    try {
+      items = await fetchProfiles();
+    } catch (err) {
+      listEl.innerHTML = "";
+      if (emptyEl) {
+        emptyEl.hidden = false;
+        emptyEl.textContent = err.message || "프로필을 불러오지 못했습니다.";
+      }
+      if (countEl) countEl.textContent = "0";
+      return;
+    }
 
+    const sort = sortEl ? sortEl.value : "newest";
     items = [...items].sort((a, b) => {
       const aTime = new Date(a.createdAt || a.date).getTime();
       const bTime = new Date(b.createdAt || b.date).getTime();
@@ -60,7 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (countEl) countEl.textContent = String(items.length);
     listEl.innerHTML = "";
-    if (emptyEl) emptyEl.hidden = items.length > 0;
+    if (emptyEl) {
+      emptyEl.hidden = items.length > 0;
+      emptyEl.textContent = "등록된 프로필이 없습니다.";
+    }
 
     items.forEach((profile) => {
       const li = document.createElement("li");
@@ -79,11 +57,14 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         li.querySelector(".board-item-title").textContent = profile.title;
         li.querySelector(".board-item-meta").textContent = formatMeta(profile);
-        li.querySelector(".board-delete-btn").addEventListener("click", () => {
+        li.querySelector(".board-delete-btn").addEventListener("click", async () => {
           if (!confirm("이 프로필을 삭제할까요?")) return;
-          const next = loadProfiles().filter((item) => item.id !== profile.id);
-          saveProfiles(next);
-          render();
+          try {
+            await deleteProfile(profile.id);
+            await render();
+          } catch (err) {
+            alert(err.message || "삭제에 실패했습니다.");
+          }
         });
       } else {
         li.innerHTML = `
@@ -100,9 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  if (sortEl) {
-    sortEl.addEventListener("change", render);
-  }
-
-  render();
+  if (sortEl) sortEl.addEventListener("change", () => void render());
+  void render();
 });

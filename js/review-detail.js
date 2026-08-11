@@ -1,32 +1,15 @@
-const REVIEW_STORAGE_KEY = "gnclass-reviews";
-
-function loadReviews() {
-  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
-  try {
-    const data = JSON.parse(localStorage.getItem(REVIEW_STORAGE_KEY) || "[]");
-    if (Array.isArray(data) && data.length) return data;
-  } catch {
-    /* ignore */
-  }
-  return typeof BANGMUN_REVIEWS_SEED !== "undefined" && Array.isArray(BANGMUN_REVIEWS_SEED)
-    ? [...BANGMUN_REVIEWS_SEED]
-    : [];
-}
-
-function saveReviews(items) {
-  localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(items));
-}
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
-  const reviews = loadReviews();
-  const review = reviews.find((item) => item.id === id) || reviews[0];
   const editLink = document.getElementById("detail-edit");
   const deleteBtn = document.getElementById("detail-delete");
   const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
 
-  if (!review) {
+  let review = null;
+  try {
+    if (!id) throw new Error("missing id");
+    review = await fetchReview(id);
+  } catch {
     document.getElementById("detail-title").textContent = "후기를 찾을 수 없습니다";
     document.getElementById("detail-meta").textContent = "";
     document.getElementById("detail-body").textContent = "목록으로 돌아가 다시 선택해 주세요.";
@@ -45,11 +28,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (admin && deleteBtn) {
-    deleteBtn.addEventListener("click", () => {
+    deleteBtn.addEventListener("click", async () => {
       if (!confirm("이 후기를 삭제할까요?")) return;
-      const next = loadReviews().filter((item) => item.id !== review.id);
-      saveReviews(next);
-      window.location.href = "reviews.html";
+      try {
+        await deleteReview(review.id);
+        window.location.href = "reviews.html";
+      } catch (err) {
+        alert(err.message || "삭제에 실패했습니다.");
+      }
     });
   }
 });

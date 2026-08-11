@@ -2,3 +2,4 @@
 node_modules/
 .dev.vars
 *.local
+scripts/seed-boards.sql

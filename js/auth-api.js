@@ -117,3 +117,76 @@ async function updateMember(id, patch) {
 async function deleteMember(id) {
   await authApi(`/api/members/${id}`, { method: "DELETE" });
 }
+
+async function fetchReviews() {
+  const data = await authApi("/api/reviews");
+  return data.items || [];
+}
+
+async function fetchReview(id) {
+  const data = await authApi(`/api/reviews/${encodeURIComponent(id)}`);
+  return data.item;
+}
+
+async function createReview(payload) {
+  const data = await authApi("/api/reviews", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return data.item;
+}
+
+async function updateReview(id, payload) {
+  const data = await authApi(`/api/reviews/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return data.item;
+}
+
+async function deleteReview(id) {
+  await authApi(`/api/reviews/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+async function fetchProfiles() {
+  const data = await authApi("/api/profiles");
+  return data.items || [];
+}
+
+async function fetchProfile(id) {
+  const data = await authApi(`/api/profiles/${encodeURIComponent(id)}`);
+  return data.item;
+}
+
+async function createProfile(payload) {
+  const data = await authApi("/api/profiles", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return data.item;
+}
+
+async function updateProfile(id, payload) {
+  const data = await authApi(`/api/profiles/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return data.item;
+}
+
+async function deleteProfile(id) {
+  await authApi(`/api/profiles/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+async function fetchPopupConfig() {
+  const data = await authApi("/api/popup");
+  return data.popup;
+}
+
+async function savePopupConfigApi(payload) {
+  const data = await authApi("/api/popup", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return data.popup;
+}
