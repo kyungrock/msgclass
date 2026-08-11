@@ -190,3 +190,63 @@ async function savePopupConfigApi(payload) {
   });
   return data.popup;
 }
+
+async function fetchNotices() {
+  const data = await authApi("/api/notices");
+  return data.items || [];
+}
+
+async function fetchNotice(id) {
+  const data = await authApi(`/api/notices/${encodeURIComponent(id)}`);
+  return data.item;
+}
+
+async function createNotice(payload) {
+  const data = await authApi("/api/notices", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return data.item;
+}
+
+async function updateNotice(id, payload) {
+  const data = await authApi(`/api/notices/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return data.item;
+}
+
+async function deleteNotice(id) {
+  await authApi(`/api/notices/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+async function fetchAttendance() {
+  const data = await authApi("/api/attendance");
+  return data.items || [];
+}
+
+async function fetchAttendanceItem(id) {
+  const data = await authApi(`/api/attendance/${encodeURIComponent(id)}`);
+  return data.item;
+}
+
+async function createAttendance(payload) {
+  const data = await authApi("/api/attendance", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return data.item;
+}
+
+async function updateAttendance(id, payload) {
+  const data = await authApi(`/api/attendance/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return data.item;
+}
+
+async function deleteAttendance(id) {
+  await authApi(`/api/attendance/${encodeURIComponent(id)}`, { method: "DELETE" });
+}

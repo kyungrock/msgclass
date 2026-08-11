@@ -1,39 +1,3 @@
-const NOTICE_STORAGE_KEY = "gnclass-notices";
-
-function getDefaultNotices() {
-  return typeof GONGJI_NOTICES_SEED !== "undefined" && Array.isArray(GONGJI_NOTICES_SEED)
-    ? GONGJI_NOTICES_SEED
-    : [];
-}
-
-function loadNotices() {
-  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
-  const defaults = getDefaultNotices();
-  try {
-    const raw = localStorage.getItem(NOTICE_STORAGE_KEY);
-    if (!raw) {
-      if (defaults.length) {
-        localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(defaults));
-      }
-      return [...defaults];
-    }
-    const data = JSON.parse(raw);
-    if (!Array.isArray(data) || data.length === 0) {
-      if (defaults.length) {
-        localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(defaults));
-      }
-      return [...defaults];
-    }
-    return data;
-  } catch {
-    return [...defaults];
-  }
-}
-
-function saveNotices(items) {
-  localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(items));
-}
-
 function formatMeta(notice) {
   const views = notice.views != null ? ` | 조회 ${notice.views}` : "";
   return `${notice.author} | ${notice.date} | 추천 ${notice.likes || 0}${views}`;
@@ -47,11 +11,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!listEl) return;
 
-  const render = () => {
+  const render = async () => {
     const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
-    let items = loadNotices();
-    const sort = sortEl ? sortEl.value : "newest";
+    let items = [];
+    try {
+      items = await fetchNotices();
+    } catch (err) {
+      listEl.innerHTML = "";
+      if (emptyEl) {
+        emptyEl.hidden = false;
+        emptyEl.textContent = err.message || "공지를 불러오지 못했습니다.";
+      }
+      if (countEl) countEl.textContent = "0";
+      return;
+    }
 
+    const sort = sortEl ? sortEl.value : "newest";
     items = [...items].sort((a, b) => {
       const aTime = new Date(a.createdAt || a.date).getTime();
       const bTime = new Date(b.createdAt || b.date).getTime();
@@ -60,7 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (countEl) countEl.textContent = String(items.length);
     listEl.innerHTML = "";
-    if (emptyEl) emptyEl.hidden = items.length > 0;
+    if (emptyEl) {
+      emptyEl.hidden = items.length > 0;
+      emptyEl.textContent = "등록된 공지가 없습니다.";
+    }
 
     items.forEach((notice) => {
       const li = document.createElement("li");
@@ -79,11 +57,14 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         li.querySelector(".board-item-title").textContent = notice.title;
         li.querySelector(".board-item-meta").textContent = formatMeta(notice);
-        li.querySelector(".board-delete-btn").addEventListener("click", () => {
+        li.querySelector(".board-delete-btn").addEventListener("click", async () => {
           if (!confirm("이 공지를 삭제할까요?")) return;
-          const next = loadNotices().filter((item) => item.id !== notice.id);
-          saveNotices(next);
-          render();
+          try {
+            await deleteNotice(notice.id);
+            await render();
+          } catch (err) {
+            alert(err.message || "삭제에 실패했습니다.");
+          }
         });
       } else {
         li.innerHTML = `
@@ -100,9 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  if (sortEl) {
-    sortEl.addEventListener("change", render);
-  }
-
-  render();
+  if (sortEl) sortEl.addEventListener("change", () => void render());
+  void render();
 });

@@ -1,21 +1,21 @@
-const ATTENDANCE_STORAGE_KEY = "gnclass-attendance";
-
-function loadAttendance() {
-  try {
-    const data = JSON.parse(localStorage.getItem(ATTENDANCE_STORAGE_KEY) || "[]");
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveAttendance(items) {
-  localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(items));
-}
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("attendance-write-form");
   if (!form) return;
+
+  let user = typeof getCachedAuthUser === "function" ? getCachedAuthUser() : null;
+  if (typeof fetchCurrentUser === "function") {
+    try {
+      user = await fetchCurrentUser();
+    } catch {
+      user = null;
+    }
+  }
+
+  if (!user || user.role !== "admin") {
+    alert("관리자만 출근부를 등록할 수 있습니다.");
+    window.location.href = "login.html";
+    return;
+  }
 
   const params = new URLSearchParams(window.location.search);
   const editId = params.get("id");
@@ -24,54 +24,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const pageTitle = document.querySelector(".page-hero h1");
 
   if (editId) {
-    const item = loadAttendance().find((entry) => entry.id === editId);
-    if (!item) {
+    try {
+      const item = await fetchAttendanceItem(editId);
+      titleInput.value = item.title || "";
+      if (pageTitle) pageTitle.textContent = "출근부 수정";
+      if (submitBtn) submitBtn.textContent = "수정하기";
+      document.title = "출근부 수정 | 강남비너스";
+    } catch {
       alert("수정할 출근부를 찾을 수 없습니다.");
       window.location.href = "attendance.html";
       return;
     }
-    titleInput.value = item.title || "";
-    if (pageTitle) pageTitle.textContent = "출근부 수정";
-    if (submitBtn) submitBtn.textContent = "수정하기";
-    document.title = "출근부 수정 | GN CLASS";
   }
 
   const backLink = document.querySelector(".back-link");
   if (backLink) backLink.href = "attendance.html";
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
     const title = titleInput.value.trim();
     if (!title) {
       alert("제목을 입력해 주세요.");
       return;
     }
 
-    const items = loadAttendance();
-
-    if (editId) {
-      const index = items.findIndex((entry) => entry.id === editId);
-      if (index < 0) {
-        alert("수정할 출근부를 찾을 수 없습니다.");
-        return;
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      if (editId) {
+        await updateAttendance(editId, { title, body: "" });
+      } else {
+        await createAttendance({ title, body: "" });
       }
-      items[index] = {
-        ...items[index],
-        title,
-        updatedAt: new Date().toISOString(),
-      };
-      saveAttendance(items);
       window.location.href = "attendance.html";
-      return;
+    } catch (err) {
+      alert(err.message || "저장에 실패했습니다.");
+      if (submitBtn) submitBtn.disabled = false;
     }
-
-    items.unshift({
-      id: String(Date.now()),
-      title,
-      createdAt: new Date().toISOString(),
-    });
-    saveAttendance(items);
-    window.location.href = "attendance.html";
   });
 });

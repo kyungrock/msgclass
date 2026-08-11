@@ -1,36 +1,3 @@
-const ATTENDANCE_STORAGE_KEY = "gnclass-attendance";
-
-const DEFAULT_ATTENDANCE = [
-  {
-    id: "sample-1",
-    title: "NF하얀, NF희나, NF유정, 우리, 소이, 다윤, 윤진, 제시, 제니, 아영, 시연",
-    createdAt: "2026-08-10T12:00:00.000Z",
-  },
-];
-
-function loadAttendance() {
-  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
-  try {
-    const raw = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(DEFAULT_ATTENDANCE));
-      return [...DEFAULT_ATTENDANCE];
-    }
-    const data = JSON.parse(raw);
-    if (!Array.isArray(data) || data.length === 0) {
-      localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(DEFAULT_ATTENDANCE));
-      return [...DEFAULT_ATTENDANCE];
-    }
-    return data;
-  } catch {
-    return [...DEFAULT_ATTENDANCE];
-  }
-}
-
-function saveAttendance(items) {
-  localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(items));
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   const listEl = document.getElementById("attendance-list");
   const countEl = document.getElementById("attendance-count");
@@ -39,20 +6,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!listEl) return;
 
-  const render = () => {
+  const render = async () => {
     const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
-    let items = loadAttendance();
-    const sort = sortEl ? sortEl.value : "newest";
+    let items = [];
+    try {
+      items = await fetchAttendance();
+    } catch (err) {
+      listEl.innerHTML = "";
+      if (emptyEl) {
+        emptyEl.hidden = false;
+        emptyEl.textContent = err.message || "출근부를 불러오지 못했습니다.";
+      }
+      if (countEl) countEl.textContent = "0";
+      return;
+    }
 
+    const sort = sortEl ? sortEl.value : "newest";
     items = [...items].sort((a, b) => {
-      const aTime = new Date(a.createdAt).getTime();
-      const bTime = new Date(b.createdAt).getTime();
+      const aTime = new Date(a.createdAt || a.date).getTime();
+      const bTime = new Date(b.createdAt || b.date).getTime();
       return sort === "oldest" ? aTime - bTime : bTime - aTime;
     });
 
     if (countEl) countEl.textContent = String(items.length);
     listEl.innerHTML = "";
-    if (emptyEl) emptyEl.hidden = items.length > 0;
+    if (emptyEl) {
+      emptyEl.hidden = items.length > 0;
+      emptyEl.textContent = "등록된 출근부가 없습니다.";
+    }
 
     items.forEach((item) => {
       const li = document.createElement("li");
@@ -69,11 +50,14 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
         li.querySelector(".board-item-title").textContent = item.title;
-        li.querySelector(".board-delete-btn").addEventListener("click", () => {
+        li.querySelector(".board-delete-btn").addEventListener("click", async () => {
           if (!confirm("이 출근부를 삭제할까요?")) return;
-          const next = loadAttendance().filter((entry) => entry.id !== item.id);
-          saveAttendance(next);
-          render();
+          try {
+            await deleteAttendance(item.id);
+            await render();
+          } catch (err) {
+            alert(err.message || "삭제에 실패했습니다.");
+          }
         });
       } else {
         li.innerHTML = `
@@ -88,9 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  if (sortEl) {
-    sortEl.addEventListener("change", render);
-  }
-
-  render();
+  if (sortEl) sortEl.addEventListener("change", () => void render());
+  void render();
 });

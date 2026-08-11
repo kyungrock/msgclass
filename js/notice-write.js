@@ -1,28 +1,21 @@
-const NOTICE_STORAGE_KEY = "gnclass-notices";
-
-function loadNotices() {
-  try {
-    const data = JSON.parse(localStorage.getItem(NOTICE_STORAGE_KEY) || "[]");
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveNotices(items) {
-  localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(items));
-}
-
-function formatDate(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}.${m}.${d}`;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("notice-write-form");
   if (!form) return;
+
+  let user = typeof getCachedAuthUser === "function" ? getCachedAuthUser() : null;
+  if (typeof fetchCurrentUser === "function") {
+    try {
+      user = await fetchCurrentUser();
+    } catch {
+      user = null;
+    }
+  }
+
+  if (!user || user.role !== "admin") {
+    alert("관리자만 공지를 등록할 수 있습니다.");
+    window.location.href = "login.html";
+    return;
+  }
 
   const params = new URLSearchParams(window.location.search);
   const editId = params.get("id");
@@ -32,63 +25,50 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = form.querySelector('button[type="submit"]');
   const pageTitle = document.querySelector(".page-hero h1");
 
+  if (authorInput && !authorInput.value) {
+    authorInput.value = user.nickname || user.username || "운영자";
+  }
+
   if (editId) {
-    const item = loadNotices().find((entry) => entry.id === editId);
-    if (!item) {
+    try {
+      const item = await fetchNotice(editId);
+      titleInput.value = item.title || "";
+      authorInput.value = item.author || "";
+      bodyInput.value = item.body || "";
+      if (pageTitle) pageTitle.textContent = "공지 수정";
+      if (submitBtn) submitBtn.textContent = "수정하기";
+      document.title = "공지 수정 | 강남비너스";
+    } catch {
       alert("수정할 공지를 찾을 수 없습니다.");
       window.location.href = "notice.html";
       return;
     }
-    titleInput.value = item.title || "";
-    authorInput.value = item.author || "";
-    bodyInput.value = item.body || "";
-    if (pageTitle) pageTitle.textContent = "공지 수정";
-    if (submitBtn) submitBtn.textContent = "수정하기";
-    document.title = "공지 수정 | GN CLASS";
   }
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const title = titleInput.value.trim();
-    const author = authorInput.value.trim();
+    const author = authorInput.value.trim() || user.nickname || "운영자";
     const body = bodyInput.value.trim();
 
-    if (!title || !author || !body) {
-      alert("제목, 작성자, 내용을 모두 입력해 주세요.");
+    if (!title || !body) {
+      alert("제목과 내용을 입력해 주세요.");
       return;
     }
 
-    const items = loadNotices();
-
-    if (editId) {
-      const index = items.findIndex((entry) => entry.id === editId);
-      if (index < 0) {
-        alert("수정할 공지를 찾을 수 없습니다.");
-        return;
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      if (editId) {
+        await updateNotice(editId, { title, author, body });
+        window.location.href = `notice-detail.html?id=${encodeURIComponent(editId)}`;
+      } else {
+        await createNotice({ title, author, body });
+        window.location.href = "notice.html";
       }
-      items[index] = {
-        ...items[index],
-        title,
-        author,
-        body,
-        updatedAt: new Date().toISOString(),
-      };
-      saveNotices(items);
-      window.location.href = `notice-detail.html?id=${encodeURIComponent(editId)}`;
-      return;
+    } catch (err) {
+      alert(err.message || "저장에 실패했습니다.");
+      if (submitBtn) submitBtn.disabled = false;
     }
-
-    items.unshift({
-      id: String(Date.now()),
-      title,
-      author,
-      body,
-      date: formatDate(),
-      createdAt: new Date().toISOString(),
-      likes: 0,
-    });
-    saveNotices(items);
-    window.location.href = "notice.html";
   });
 });

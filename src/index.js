@@ -321,7 +321,10 @@ async function handleBoardGet(env, table, id) {
 }
 
 async function handleBoardCreate(request, env, table) {
-  const auth = await requireMember(request, env);
+  const adminOnly = table === "attendance" || table === "notices";
+  const auth = adminOnly
+    ? await requireAdmin(request, env)
+    : await requireMember(request, env);
   if (auth.error) return auth.error;
 
   const body = await readJson(request);
@@ -329,13 +332,20 @@ async function handleBoardCreate(request, env, table) {
 
   const title = String(body.title || "").trim();
   const content = String(body.body || "").trim();
-  if (!title || !content) {
-    return json({ error: "제목과 내용을 입력해 주세요." }, 400);
+  const requireBody = table !== "attendance";
+  if (!title || (requireBody && !content)) {
+    return json(
+      { error: requireBody ? "제목과 내용을 입력해 주세요." : "제목을 입력해 주세요." },
+      400
+    );
   }
-  if (title.length > 120) return json({ error: "제목이 너무 깁니다." }, 400);
+  if (title.length > 200) return json({ error: "제목이 너무 깁니다." }, 400);
   if (content.length > 10000) return json({ error: "내용이 너무 깁니다." }, 400);
 
-  const author = String(auth.user.nickname || auth.user.username);
+  const author =
+    body.author != null && String(body.author).trim()
+      ? String(body.author).trim()
+      : String(auth.user.nickname || auth.user.username);
   const id = `${Date.now()}-${randomHex(4)}`;
   const createdAt = new Date().toISOString();
   const date = formatDateKo();
@@ -368,9 +378,13 @@ async function handleBoardPatch(request, env, table, id) {
   const content = body.body != null ? String(body.body).trim() : existing.body;
   const author =
     body.author != null ? String(body.author).trim() : existing.author;
+  const requireBody = table !== "attendance";
 
-  if (!title || !content) {
-    return json({ error: "제목과 내용을 입력해 주세요." }, 400);
+  if (!title || (requireBody && !content)) {
+    return json(
+      { error: requireBody ? "제목과 내용을 입력해 주세요." : "제목을 입력해 주세요." },
+      400
+    );
   }
 
   await env.DB.prepare(
@@ -599,6 +613,50 @@ export default {
           request,
           env,
           "profiles",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "GET" && path === "/api/notices") {
+        response = await handleBoardList(env, "notices");
+      } else if (request.method === "POST" && path === "/api/notices") {
+        response = await handleBoardCreate(request, env, "notices");
+      } else if (request.method === "GET" && /^\/api\/notices\/[^/]+$/.test(path)) {
+        response = await handleBoardGet(env, "notices", decodeURIComponent(path.split("/").pop()));
+      } else if (request.method === "PATCH" && /^\/api\/notices\/[^/]+$/.test(path)) {
+        response = await handleBoardPatch(
+          request,
+          env,
+          "notices",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "DELETE" && /^\/api\/notices\/[^/]+$/.test(path)) {
+        response = await handleBoardDelete(
+          request,
+          env,
+          "notices",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "GET" && path === "/api/attendance") {
+        response = await handleBoardList(env, "attendance");
+      } else if (request.method === "POST" && path === "/api/attendance") {
+        response = await handleBoardCreate(request, env, "attendance");
+      } else if (request.method === "GET" && /^\/api\/attendance\/[^/]+$/.test(path)) {
+        response = await handleBoardGet(
+          env,
+          "attendance",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "PATCH" && /^\/api\/attendance\/[^/]+$/.test(path)) {
+        response = await handleBoardPatch(
+          request,
+          env,
+          "attendance",
+          decodeURIComponent(path.split("/").pop())
+        );
+      } else if (request.method === "DELETE" && /^\/api\/attendance\/[^/]+$/.test(path)) {
+        response = await handleBoardDelete(
+          request,
+          env,
+          "attendance",
           decodeURIComponent(path.split("/").pop())
         );
       } else if (request.method === "GET" && path === "/api/popup") {
