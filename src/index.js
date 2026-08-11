@@ -321,7 +321,7 @@ async function handleBoardGet(env, table, id) {
 }
 
 async function handleBoardCreate(request, env, table) {
-  const adminOnly = table === "attendance" || table === "notices";
+  const adminOnly = table === "attendance" || table === "notices" || table === "profiles";
   const auth = adminOnly
     ? await requireAdmin(request, env)
     : await requireMember(request, env);

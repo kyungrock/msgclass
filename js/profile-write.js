@@ -11,9 +11,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  if (!user || user.status === "banned") {
-    alert("로그인 후 프로필을 등록할 수 있습니다.");
-    window.location.href = "login.html";
+  if (!user || user.role !== "admin") {
+    alert("관리자만 프로필을 등록할 수 있습니다.");
+    window.location.href = "profile.html";
     return;
   }
 
@@ -31,12 +31,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (authorNote) authorNote.textContent = `작성자: ${authorName}`;
 
   if (editId) {
-    const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
-    if (!isAdmin) {
-      alert("프로필 수정은 관리자만 가능합니다.");
-      window.location.href = "profile.html";
-      return;
-    }
     try {
       const item = await fetchProfile(editId);
       titleInput.value = item.title || "";
