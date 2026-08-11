@@ -1,7 +1,7 @@
 function formatMeta(item, { showDate = false } = {}) {
   const views = item.views != null ? ` | 조회 ${item.views}` : "";
   const datePart = showDate && item.date ? ` | ${item.date}` : "";
-  return `${item.author}${datePart} | 추천 ${item.likes || 0}${views}`;
+  return `${item.author}${datePart}${views}`;
 }
 
 function matchesQuery(item, query) {
