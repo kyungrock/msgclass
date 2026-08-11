@@ -1,9 +1,21 @@
 const ADMIN_STORAGE_KEY = "gnclass-admin-mode";
 
+function getAuthUserSafe() {
+  try {
+    return typeof getCachedAuthUser === "function" ? getCachedAuthUser() : null;
+  } catch {
+    return null;
+  }
+}
+
+function isLoggedInUser() {
+  const user = getAuthUserSafe();
+  return !!(user && user.status !== "banned");
+}
+
 function isAdminMode() {
   try {
-    const cached =
-      typeof getCachedAuthUser === "function" ? getCachedAuthUser() : null;
+    const cached = getAuthUserSafe();
     if (cached && cached.role === "admin" && cached.status !== "banned") {
       return true;
     }
@@ -41,4 +53,17 @@ function applyAdminVisibility() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", applyAdminVisibility);
+function applyMemberVisibility() {
+  const loggedIn = isLoggedInUser();
+  document.body.classList.toggle("is-member", loggedIn);
+  document.querySelectorAll("[data-member-only]").forEach((el) => {
+    el.hidden = !loggedIn;
+  });
+}
+
+function applyAuthVisibility() {
+  applyAdminVisibility();
+  applyMemberVisibility();
+}
+
+document.addEventListener("DOMContentLoaded", applyAuthVisibility);

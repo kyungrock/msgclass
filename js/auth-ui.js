@@ -20,6 +20,12 @@ async function refreshAuthNav() {
   if (existingUser) existingUser.remove();
   if (existingLogout) existingLogout.remove();
 
+  if (typeof applyAuthVisibility === "function") applyAuthVisibility();
+  else {
+    if (typeof applyAdminVisibility === "function") applyAdminVisibility();
+    if (typeof applyMemberVisibility === "function") applyMemberVisibility();
+  }
+
   if (!user) {
     if (loginLink) loginLink.hidden = false;
     if (signupLink) signupLink.hidden = false;

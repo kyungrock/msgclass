@@ -47,10 +47,8 @@
         제목
         <input type="text" name="title" id="review-title" maxlength="80" required placeholder="제목을 입력하세요" />
       </label>
-      <label>
-        작성자
-        <input type="text" name="author" id="review-author" maxlength="20" required placeholder="닉네임" />
-      </label>
+      <p class="write-author-note" id="review-author-note">작성자: -</p>
+      <input type="hidden" name="author" id="review-author" />
       <label>
         내용
         <textarea name="body" id="review-body" required placeholder="후기 내용을 입력하세요"></textarea>
@@ -63,10 +61,11 @@
     <p>&copy; msg1000 강남 비너스</p>
   </footer>
 
-  <script src="js/auth-api.js?v=20260811-14"></script>
-  <script src="js/main.js?v=20260811-14"></script>
-  <script src="js/auth-ui.js?v=20260811-14"></script>
-  <script src="js/banned-words.js?v=20260811-14"></script>
-  <script src="js/review-write.js?v=20260811-14"></script>
+  <script src="js/auth-api.js?v=20260811-15"></script>
+  <script src="js/admin-mode.js?v=20260811-15"></script>
+  <script src="js/main.js?v=20260811-15"></script>
+  <script src="js/auth-ui.js?v=20260811-15"></script>
+  <script src="js/banned-words.js?v=20260811-15"></script>
+  <script src="js/review-write.js?v=20260811-15"></script>
 </body>
 </html>
