@@ -40,36 +40,17 @@ function writeUrlset(filePath, entries) {
   fs.writeFileSync(filePath, xml, "utf8");
 }
 
+// Reviews/profiles are intentionally excluded from sitemaps (noindex).
 const pages = [
   ["https://msg1000.com/", today, "daily", "1.0"],
   ["https://msg1000.com/attendance.html", today, "daily", "0.9"],
-  ["https://msg1000.com/profile.html", today, "daily", "0.9"],
-  ["https://msg1000.com/reviews.html", today, "daily", "0.9"],
   ["https://msg1000.com/notice.html", today, "weekly", "0.8"],
 ];
 
-const profiles = loadJson("profile/nf_profiles_full.json");
-const reviews = loadJson("Review/bangmun_full.json");
 const notices = loadJson("gongji/gongji_full.json");
 
 const pageEntries = pages.map(([loc, lastmod, cf, pr]) =>
   urlEntry(loc, lastmod, cf, pr)
-);
-const profileEntries = profiles.map((item) =>
-  urlEntry(
-    item.url || `https://msg1000.com/profile-detail.html?id=${item.uid}`,
-    toLastmod(item.details && item.details["작성일"]),
-    "weekly",
-    "0.7"
-  )
-);
-const reviewEntries = reviews.map((item) =>
-  urlEntry(
-    item.url || `https://msg1000.com/review-detail.html?id=${item.uid}`,
-    toLastmod(item.details && item.details["작성일"]),
-    "weekly",
-    "0.6"
-  )
 );
 const noticeEntries = notices.map((item) =>
   urlEntry(
@@ -80,35 +61,25 @@ const noticeEntries = notices.map((item) =>
   )
 );
 
-const allEntries = [
-  ...pageEntries,
-  ...profileEntries,
-  ...reviewEntries,
-  ...noticeEntries,
-];
+const allEntries = [...pageEntries, ...noticeEntries];
 
 writeUrlset(path.join(root, "sitemap.xml"), allEntries);
 
 const sitemapsDir = path.join(root, "sitemaps");
 fs.mkdirSync(sitemapsDir, { recursive: true });
 writeUrlset(path.join(sitemapsDir, "pages.xml"), pageEntries);
-writeUrlset(path.join(sitemapsDir, "profiles.xml"), profileEntries);
-writeUrlset(path.join(sitemapsDir, "reviews.xml"), reviewEntries);
 writeUrlset(path.join(sitemapsDir, "notices.xml"), noticeEntries);
+
+for (const stale of ["profiles.xml", "reviews.xml"]) {
+  const stalePath = path.join(sitemapsDir, stale);
+  if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
+}
 
 const indexXml = [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
   "  <sitemap>",
   "    <loc>https://msg1000.com/sitemaps/pages.xml</loc>",
-  `    <lastmod>${today}</lastmod>`,
-  "  </sitemap>",
-  "  <sitemap>",
-  "    <loc>https://msg1000.com/sitemaps/profiles.xml</loc>",
-  `    <lastmod>${today}</lastmod>`,
-  "  </sitemap>",
-  "  <sitemap>",
-  "    <loc>https://msg1000.com/sitemaps/reviews.xml</loc>",
   `    <lastmod>${today}</lastmod>`,
   "  </sitemap>",
   "  <sitemap>",
@@ -123,7 +94,5 @@ fs.writeFileSync(path.join(root, "sitemap-index.xml"), indexXml, "utf8");
 console.log({
   total: allEntries.length,
   pages: pageEntries.length,
-  profiles: profileEntries.length,
-  reviews: reviewEntries.length,
   notices: noticeEntries.length,
 });
