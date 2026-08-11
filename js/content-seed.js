@@ -1,4 +1,4 @@
-const CONTENT_VERSION = "2026-08-11-v6";
+const CONTENT_VERSION = "2026-08-11-v7";
 const CONTENT_VERSION_KEY = "gnclass-content-version";
 
 const SEED_PROFILES = [
