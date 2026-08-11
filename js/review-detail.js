@@ -18,8 +18,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("detail-title").textContent = review.title;
   const views = review.views != null ? ` | 조회 ${review.views}` : "";
+  const datePart = admin && review.date ? ` | ${review.date}` : "";
   document.getElementById("detail-meta").textContent =
-    `${review.author} | ${review.date} | 추천 ${review.likes || 0}${views}`;
+    `${review.author}${datePart} | 추천 ${review.likes || 0}${views}`;
   document.getElementById("detail-body").textContent = review.body;
 
   const pageUrl = `https://msg1000.com/review-detail.html?id=${encodeURIComponent(review.id)}`;

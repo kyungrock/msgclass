@@ -1,6 +1,7 @@
-function formatMeta(item) {
+function formatMeta(item, { showDate = false } = {}) {
   const views = item.views != null ? ` | 조회 ${item.views}` : "";
-  return `${item.author} | ${item.date} | 추천 ${item.likes || 0}${views}`;
+  const datePart = showDate && item.date ? ` | ${item.date}` : "";
+  return `${item.author}${datePart} | 추천 ${item.likes || 0}${views}`;
 }
 
 function matchesQuery(item, query) {
@@ -80,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
         li.querySelector(".board-item-title").textContent = profile.title;
-        li.querySelector(".board-item-meta").textContent = formatMeta(profile);
+        li.querySelector(".board-item-meta").textContent = formatMeta(profile, { showDate: admin });
         li.querySelector(".board-delete-btn").addEventListener("click", async () => {
           if (!confirm("이 프로필을 삭제할까요?")) return;
           try {
@@ -98,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </a>
         `;
         li.querySelector(".board-item-title").textContent = profile.title;
-        li.querySelector(".board-item-meta").textContent = formatMeta(profile);
+        li.querySelector(".board-item-meta").textContent = formatMeta(profile, { showDate: admin });
       }
 
       listEl.appendChild(li);

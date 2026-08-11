@@ -18,8 +18,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("detail-title").textContent = profile.title;
   const views = profile.views != null ? ` | 조회 ${profile.views}` : "";
+  const datePart = admin && profile.date ? ` | ${profile.date}` : "";
   document.getElementById("detail-meta").textContent =
-    `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}${views}`;
+    `${profile.author}${datePart} | 추천 ${profile.likes || 0}${views}`;
   document.getElementById("detail-body").textContent = profile.body;
 
   const pageUrl = `https://msg1000.com/profile-detail.html?id=${encodeURIComponent(profile.id)}`;
