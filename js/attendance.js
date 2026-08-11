@@ -3,8 +3,8 @@ const ATTENDANCE_STORAGE_KEY = "gnclass-attendance";
 const DEFAULT_ATTENDANCE = [
   {
     id: "sample-1",
-    title: "수애, 보라, 제니, 아영, 소나, 제시",
-    createdAt: new Date().toISOString(),
+    title: "NF희나 NF유정 다인 우리 민주 소이 다윤 윤진 제시 제니 아영 시연",
+    createdAt: "2026-08-10T12:00:00.000Z",
   },
 ];
 
@@ -17,7 +17,11 @@ function loadAttendance() {
       return [...DEFAULT_ATTENDANCE];
     }
     const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [...DEFAULT_ATTENDANCE];
+    if (!Array.isArray(data) || data.length === 0) {
+      localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(DEFAULT_ATTENDANCE));
+      return [...DEFAULT_ATTENDANCE];
+    }
+    return data;
   } catch {
     return [...DEFAULT_ATTENDANCE];
   }
