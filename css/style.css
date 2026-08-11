@@ -576,6 +576,32 @@ input {
   margin-bottom: 24px;
 }
 
+.home-attendance-section {
+  margin: 8px 0 28px;
+}
+
+.home-attendance-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.home-attendance-head .section-title {
+  margin: 0;
+}
+
+.home-attendance-more {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.home-attendance-more:hover {
+  color: #ddd;
+}
+
 .section-title {
   margin: 0 0 14px;
   font-size: 1.05rem;
