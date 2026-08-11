@@ -7,7 +7,7 @@ const DEFAULT_PROFILES = [
     author: "관리자",
     body: "강남클라스 프로필입니다.",
     date: "2026.08.10",
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-08-10T12:00:00.000Z",
     likes: 0,
   },
   {
@@ -16,7 +16,7 @@ const DEFAULT_PROFILES = [
     author: "관리자",
     body: "강남클라스 프로필입니다.",
     date: "2026.08.10",
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-08-10T11:00:00.000Z",
     likes: 0,
   },
   {
@@ -25,7 +25,34 @@ const DEFAULT_PROFILES = [
     author: "관리자",
     body: "강남클라스 프로필입니다.",
     date: "2026.08.10",
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-08-10T10:00:00.000Z",
+    likes: 0,
+  },
+  {
+    id: "sample-4",
+    title: "아영",
+    author: "관리자",
+    body: "강남클라스 프로필입니다.",
+    date: "2026.08.10",
+    createdAt: "2026-08-10T09:00:00.000Z",
+    likes: 0,
+  },
+  {
+    id: "sample-5",
+    title: "소나",
+    author: "관리자",
+    body: "강남클라스 프로필입니다.",
+    date: "2026.08.10",
+    createdAt: "2026-08-10T08:00:00.000Z",
+    likes: 0,
+  },
+  {
+    id: "sample-6",
+    title: "제시",
+    author: "관리자",
+    body: "강남클라스 프로필입니다.",
+    date: "2026.08.10",
+    createdAt: "2026-08-10T07:00:00.000Z",
     likes: 0,
   },
 ];
@@ -39,7 +66,11 @@ function loadProfiles() {
       return [...DEFAULT_PROFILES];
     }
     const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [...DEFAULT_PROFILES];
+    if (!Array.isArray(data) || data.length === 0) {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(DEFAULT_PROFILES));
+      return [...DEFAULT_PROFILES];
+    }
+    return data;
   } catch {
     return [...DEFAULT_PROFILES];
   }
