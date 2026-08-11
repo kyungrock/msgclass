@@ -1,29 +1,32 @@
 const NOTICE_STORAGE_KEY = "gnclass-notices";
 
-const DEFAULT_NOTICES = [
-  {
-    id: "sample-1",
-    title: "텔레그램 문의 가능합니다.",
-    author: "운영자",
-    body: "텔레그램으로도 문의가 가능합니다.",
-    date: "2026.08.10",
-    createdAt: new Date().toISOString(),
-    likes: 0,
-  },
-];
+function getDefaultNotices() {
+  return typeof GONGJI_NOTICES_SEED !== "undefined" && Array.isArray(GONGJI_NOTICES_SEED)
+    ? GONGJI_NOTICES_SEED
+    : [];
+}
 
 function loadNotices() {
   if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
+  const defaults = getDefaultNotices();
   try {
     const raw = localStorage.getItem(NOTICE_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(DEFAULT_NOTICES));
-      return [...DEFAULT_NOTICES];
+      if (defaults.length) {
+        localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(defaults));
+      }
+      return [...defaults];
     }
     const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [...DEFAULT_NOTICES];
+    if (!Array.isArray(data) || data.length === 0) {
+      if (defaults.length) {
+        localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(defaults));
+      }
+      return [...defaults];
+    }
+    return data;
   } catch {
-    return [...DEFAULT_NOTICES];
+    return [...defaults];
   }
 }
 
@@ -32,7 +35,8 @@ function saveNotices(items) {
 }
 
 function formatMeta(notice) {
-  return `${notice.author} | ${notice.date} | 추천 ${notice.likes || 0}`;
+  const views = notice.views != null ? ` | 조회 ${notice.views}` : "";
+  return `${notice.author} | ${notice.date} | 추천 ${notice.likes || 0}${views}`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

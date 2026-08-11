@@ -1,4 +1,4 @@
-const CONTENT_VERSION = "2026-08-11-v10";
+const CONTENT_VERSION = "2026-08-11-v11";
 const CONTENT_VERSION_KEY = "gnclass-content-version";
 
 function getSeedProfiles() {
@@ -13,11 +13,18 @@ function getSeedReviews() {
     : [];
 }
 
+function getSeedNotices() {
+  return typeof GONGJI_NOTICES_SEED !== "undefined" && Array.isArray(GONGJI_NOTICES_SEED)
+    ? GONGJI_NOTICES_SEED
+    : [];
+}
+
 function syncSiteContentVersion() {
   try {
     const current = localStorage.getItem(CONTENT_VERSION_KEY);
     const seedProfiles = getSeedProfiles();
     const seedReviews = getSeedReviews();
+    const seedNotices = getSeedNotices();
 
     if (current !== CONTENT_VERSION) {
       localStorage.setItem(
@@ -35,20 +42,9 @@ function syncSiteContentVersion() {
         localStorage.setItem("gnclass-reviews", JSON.stringify(seedReviews));
       }
 
-      localStorage.setItem(
-        "gnclass-notices",
-        JSON.stringify([
-          {
-            id: "sample-1",
-            title: "텔레그램 문의 가능합니다.",
-            author: "운영자",
-            body: "텔레그램으로도 문의가 가능합니다.",
-            date: "2026.08.10",
-            createdAt: "2026-08-10T12:00:00.000Z",
-            likes: 0,
-          },
-        ])
-      );
+      if (seedNotices.length) {
+        localStorage.setItem("gnclass-notices", JSON.stringify(seedNotices));
+      }
 
       if (seedProfiles.length) {
         localStorage.setItem("gnclass-profiles", JSON.stringify(seedProfiles));
@@ -97,6 +93,17 @@ function syncSiteContentVersion() {
     }
     if ((!Array.isArray(reviews) || reviews.length === 0) && seedReviews.length) {
       localStorage.setItem("gnclass-reviews", JSON.stringify(seedReviews));
+    }
+
+    const noticesRaw = localStorage.getItem("gnclass-notices");
+    let notices = [];
+    try {
+      notices = JSON.parse(noticesRaw || "[]");
+    } catch {
+      notices = [];
+    }
+    if ((!Array.isArray(notices) || notices.length === 0) && seedNotices.length) {
+      localStorage.setItem("gnclass-notices", JSON.stringify(seedNotices));
     }
   } catch {
     /* ignore */
