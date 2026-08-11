@@ -3,30 +3,52 @@ function formatMeta(item) {
   return `${item.author} | ${item.date} | 추천 ${item.likes || 0}${views}`;
 }
 
+function matchesQuery(item, query) {
+  if (!query) return true;
+  const haystack = [item.title, item.author, item.body]
+    .map((v) => String(v || "").toLowerCase())
+    .join(" ");
+  return haystack.includes(query);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const listEl = document.getElementById("review-list");
   const countEl = document.getElementById("review-count");
   const emptyEl = document.getElementById("review-empty");
   const sortEl = document.getElementById("review-sort");
+  const searchEl = document.getElementById("review-search");
 
   if (!listEl) return;
 
-  const render = async () => {
+  let cachedItems = null;
+  let searchTimer = null;
+
+  const render = async ({ force = false } = {}) => {
     const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
     let items = [];
-    try {
-      items = await fetchReviews();
-    } catch (err) {
-      listEl.innerHTML = "";
-      if (emptyEl) {
-        emptyEl.hidden = false;
-        emptyEl.textContent = err.message || "후기를 불러오지 못했습니다.";
+
+    if (!force && cachedItems) {
+      items = cachedItems;
+    } else {
+      try {
+        items = await fetchReviews();
+        cachedItems = items;
+      } catch (err) {
+        cachedItems = null;
+        listEl.innerHTML = "";
+        if (emptyEl) {
+          emptyEl.hidden = false;
+          emptyEl.textContent = err.message || "후기를 불러오지 못했습니다.";
+        }
+        if (countEl) countEl.textContent = "0";
+        return;
       }
-      if (countEl) countEl.textContent = "0";
-      return;
     }
 
+    const query = searchEl ? searchEl.value.trim().toLowerCase() : "";
     const sort = sortEl ? sortEl.value : "newest";
+
+    items = items.filter((item) => matchesQuery(item, query));
     items = [...items].sort((a, b) => {
       const aTime = new Date(a.createdAt || a.date).getTime();
       const bTime = new Date(b.createdAt || b.date).getTime();
@@ -37,7 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
     listEl.innerHTML = "";
     if (emptyEl) {
       emptyEl.hidden = items.length > 0;
-      emptyEl.textContent = "등록된 후기가 없습니다.";
+      emptyEl.textContent = query
+        ? "검색 결과가 없습니다."
+        : "등록된 후기가 없습니다.";
     }
 
     items.forEach((review) => {
@@ -61,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!confirm("이 후기를 삭제할까요?")) return;
           try {
             await deleteReview(review.id);
-            await render();
+            await render({ force: true });
           } catch (err) {
             alert(err.message || "삭제에 실패했습니다.");
           }
@@ -82,5 +106,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   if (sortEl) sortEl.addEventListener("change", () => void render());
-  void render();
+  if (searchEl) {
+    searchEl.addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => void render(), 150);
+    });
+  }
+  void render({ force: true });
 });
