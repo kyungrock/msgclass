@@ -1,4 +1,4 @@
-const CONTENT_VERSION = "2026-08-10-v2";
+const CONTENT_VERSION = "2026-08-11-v3";
 const CONTENT_VERSION_KEY = "gnclass-content-version";
 
 function syncSiteContentVersion() {
@@ -46,6 +46,40 @@ function syncSiteContentVersion() {
       ])
     );
 
+    localStorage.setItem(
+      "gnclass-profiles",
+      JSON.stringify([
+        {
+          id: "sample-1",
+          title: "수애",
+          author: "관리자",
+          body: "강남클라스 프로필입니다.",
+          date: "2026.08.10",
+          createdAt: new Date().toISOString(),
+          likes: 0,
+        },
+        {
+          id: "sample-2",
+          title: "보라",
+          author: "관리자",
+          body: "강남클라스 프로필입니다.",
+          date: "2026.08.10",
+          createdAt: new Date().toISOString(),
+          likes: 0,
+        },
+        {
+          id: "sample-3",
+          title: "제니",
+          author: "관리자",
+          body: "강남클라스 프로필입니다.",
+          date: "2026.08.10",
+          createdAt: new Date().toISOString(),
+          likes: 0,
+        },
+      ])
+    );
+
+    localStorage.removeItem("gnclass-profile-items");
     localStorage.setItem(CONTENT_VERSION_KEY, CONTENT_VERSION);
   } catch {
     /* ignore */

@@ -1,21 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
-  <title>강남클라스 프로필 | 강남 클라스 - msg1000.com</title>
-  <meta name="description" content="강남클라스 프로필입니다. 강남 클라스 프로필을 확인하세요." />
-  <meta name="keywords" content="강남클라스 프로필, 강남클라스, 강남 클라스 프로필, msg1000" />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://msg1000.com/profile.html" />
-  <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ko_KR" />
-  <meta property="og:site_name" content="강남클라스" />
-  <meta property="og:title" content="강남클라스 프로필" />
-  <meta property="og:description" content="강남클라스 프로필 안내." />
-  <meta property="og:url" content="https://msg1000.com/profile.html" />
-  <meta property="og:image" content="https://msg1000.com/images/profile.png" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>프로필 상세 | 강남클라스</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -47,23 +37,16 @@
   </header>
 
   <main class="page">
+    <a class="back-link" href="profile.html">← 프로필 목록</a>
     <div class="page-hero">
-      <h1>강남클라스 프로필</h1>
+      <h1 id="detail-title">프로필</h1>
     </div>
-
-    <div class="board-toolbar" data-admin-only hidden>
-      <span class="board-count">전체 <span id="profile-count">0</span></span>
-      <div class="board-toolbar-right">
-        <select class="board-sort" id="profile-sort" aria-label="정렬">
-          <option value="newest" selected>최신순</option>
-          <option value="oldest">오래된순</option>
-        </select>
-        <a class="btn btn-primary" href="profile-write.html">프로필 등록</a>
-      </div>
+    <p class="detail-meta" id="detail-meta"></p>
+    <div class="detail-body" id="detail-body"></div>
+    <div class="detail-actions" id="detail-actions" data-admin-only hidden>
+      <a class="btn" id="detail-edit" href="#">수정</a>
+      <button type="button" class="btn" id="detail-delete">삭제</button>
     </div>
-
-    <ul class="board-list" id="profile-list"></ul>
-    <p class="board-empty" id="profile-empty" hidden>등록된 프로필이 없습니다.</p>
   </main>
 
   <footer class="site-footer">
@@ -73,6 +56,6 @@
   <script src="js/admin-mode.js"></script>
   <script src="js/content-seed.js"></script>
   <script src="js/main.js"></script>
-  <script src="js/profile.js"></script>
+  <script src="js/profile-detail.js"></script>
 </body>
 </html>

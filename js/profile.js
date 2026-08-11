@@ -1,86 +1,121 @@
-const STORAGE_KEY = "gnclass-profile-items";
-const DEFAULT_PROFILE_IMAGE = "images/profile-page.jpg";
+const PROFILE_STORAGE_KEY = "gnclass-profiles";
+
+const DEFAULT_PROFILES = [
+  {
+    id: "sample-1",
+    title: "수애",
+    author: "관리자",
+    body: "강남클라스 프로필입니다.",
+    date: "2026.08.10",
+    createdAt: new Date().toISOString(),
+    likes: 0,
+  },
+  {
+    id: "sample-2",
+    title: "보라",
+    author: "관리자",
+    body: "강남클라스 프로필입니다.",
+    date: "2026.08.10",
+    createdAt: new Date().toISOString(),
+    likes: 0,
+  },
+  {
+    id: "sample-3",
+    title: "제니",
+    author: "관리자",
+    body: "강남클라스 프로필입니다.",
+    date: "2026.08.10",
+    createdAt: new Date().toISOString(),
+    likes: 0,
+  },
+];
+
+function loadProfiles() {
+  if (typeof syncSiteContentVersion === "function") syncSiteContentVersion();
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(DEFAULT_PROFILES));
+      return [...DEFAULT_PROFILES];
+    }
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [...DEFAULT_PROFILES];
+  } catch {
+    return [...DEFAULT_PROFILES];
+  }
+}
+
+function saveProfiles(items) {
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(items));
+}
+
+function formatMeta(profile) {
+  return `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}`;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
-  const registerBtn = document.getElementById("profile-register-btn");
-  const imageInput = document.getElementById("profile-image-input");
-  const gallery = document.getElementById("profile-gallery");
-  const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
+  const listEl = document.getElementById("profile-list");
+  const countEl = document.getElementById("profile-count");
+  const emptyEl = document.getElementById("profile-empty");
+  const sortEl = document.getElementById("profile-sort");
 
-  const loadExtraItems = () => {
-    try {
-      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      return Array.isArray(data) ? data.filter((item) => !item.isDefault) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const saveItems = (items) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  };
+  if (!listEl) return;
 
   const render = () => {
-    const extras = loadExtraItems();
-    gallery.innerHTML = "";
+    const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
+    let items = loadProfiles();
+    const sort = sortEl ? sortEl.value : "newest";
 
-    const defaultCard = document.createElement("article");
-    defaultCard.className = "profile-card";
-    const defaultImg = document.createElement("img");
-    defaultImg.src = DEFAULT_PROFILE_IMAGE;
-    defaultImg.alt = "강남클라스 프로필";
-    defaultCard.appendChild(defaultImg);
-    gallery.appendChild(defaultCard);
+    items = [...items].sort((a, b) => {
+      const aTime = new Date(a.createdAt || a.date).getTime();
+      const bTime = new Date(b.createdAt || b.date).getTime();
+      return sort === "oldest" ? aTime - bTime : bTime - aTime;
+    });
 
-    extras.forEach((item) => {
-      const card = document.createElement("article");
-      card.className = "profile-card";
+    if (countEl) countEl.textContent = String(items.length);
+    listEl.innerHTML = "";
+    if (emptyEl) emptyEl.hidden = items.length > 0;
 
-      const img = document.createElement("img");
-      img.src = item.imageData;
-      img.alt = "등록된 프로필 이미지";
-      card.appendChild(img);
+    items.forEach((profile) => {
+      const li = document.createElement("li");
+      li.className = "board-item";
 
       if (admin) {
-        const removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.className = "btn profile-card-remove";
-        removeBtn.textContent = "삭제";
-        removeBtn.addEventListener("click", () => {
-          const next = loadExtraItems().filter((entry) => entry.id !== item.id);
-          saveItems(next);
+        li.innerHTML = `
+          <div class="board-item-row">
+            <a class="board-item-main" href="profile-detail.html?id=${encodeURIComponent(profile.id)}">
+              <p class="board-item-title"></p>
+              <p class="board-item-meta"></p>
+            </a>
+            <a class="btn board-edit-btn" href="profile-write.html?id=${encodeURIComponent(profile.id)}">수정</a>
+            <button type="button" class="btn board-delete-btn">삭제</button>
+          </div>
+        `;
+        li.querySelector(".board-item-title").textContent = profile.title;
+        li.querySelector(".board-item-meta").textContent = formatMeta(profile);
+        li.querySelector(".board-delete-btn").addEventListener("click", () => {
+          if (!confirm("이 프로필을 삭제할까요?")) return;
+          const next = loadProfiles().filter((item) => item.id !== profile.id);
+          saveProfiles(next);
           render();
         });
-        card.appendChild(removeBtn);
+      } else {
+        li.innerHTML = `
+          <a href="profile-detail.html?id=${encodeURIComponent(profile.id)}">
+            <p class="board-item-title"></p>
+            <p class="board-item-meta"></p>
+          </a>
+        `;
+        li.querySelector(".board-item-title").textContent = profile.title;
+        li.querySelector(".board-item-meta").textContent = formatMeta(profile);
       }
 
-      gallery.appendChild(card);
+      listEl.appendChild(li);
     });
   };
 
-  if (registerBtn && imageInput && admin) {
-    registerBtn.addEventListener("click", () => {
-      imageInput.click();
-    });
-
-    imageInput.addEventListener("change", () => {
-      const file = imageInput.files && imageInput.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const current = loadExtraItems();
-        current.unshift({
-          id: String(Date.now()),
-          imageData: String(reader.result),
-          createdAt: new Date().toISOString(),
-        });
-        saveItems(current);
-        imageInput.value = "";
-        render();
-      };
-      reader.readAsDataURL(file);
-    });
+  if (sortEl) {
+    sortEl.addEventListener("change", render);
   }
 
   render();
