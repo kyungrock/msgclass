@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
+Allow: /sitemap.xml
+Allow: /sitemap-index.xml
+Allow: /sitemaps/
+
 Disallow: /login.html
 Disallow: /signup.html
 Disallow: /banned-words.html
@@ -12,5 +16,7 @@ Disallow: /members.html
 Disallow: /popup.html
 Disallow: /popup-write.html
 Disallow: /profile-write.html
+Disallow: /public-api/
 
 Sitemap: https://msg1000.com/sitemap.xml
+Sitemap: https://msg1000.com/sitemap-index.xml

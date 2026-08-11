@@ -1,0 +1,129 @@
+const fs = require("fs");
+const path = require("path");
+
+const root = path.join(__dirname, "..");
+const today = new Date().toISOString().slice(0, 10);
+
+function loadJson(rel) {
+  return JSON.parse(fs.readFileSync(path.join(root, rel), "utf8"));
+}
+
+function toLastmod(dateStr) {
+  if (!dateStr) return today;
+  const m = String(dateStr).match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : today;
+}
+
+function esc(url) {
+  return String(url).replace(/&/g, "&amp;");
+}
+
+function urlEntry(loc, lastmod, changefreq, priority) {
+  return [
+    "  <url>",
+    `    <loc>${esc(loc)}</loc>`,
+    `    <lastmod>${lastmod}</lastmod>`,
+    `    <changefreq>${changefreq}</changefreq>`,
+    `    <priority>${priority}</priority>`,
+    "  </url>",
+  ].join("\n");
+}
+
+function writeUrlset(filePath, entries) {
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    entries.join("\n"),
+    "</urlset>",
+    "",
+  ].join("\n");
+  fs.writeFileSync(filePath, xml, "utf8");
+}
+
+const pages = [
+  ["https://msg1000.com/", today, "daily", "1.0"],
+  ["https://msg1000.com/attendance.html", today, "daily", "0.9"],
+  ["https://msg1000.com/profile.html", today, "daily", "0.9"],
+  ["https://msg1000.com/reviews.html", today, "daily", "0.9"],
+  ["https://msg1000.com/notice.html", today, "weekly", "0.8"],
+];
+
+const profiles = loadJson("profile/nf_profiles_full.json");
+const reviews = loadJson("Review/bangmun_full.json");
+const notices = loadJson("gongji/gongji_full.json");
+
+const pageEntries = pages.map(([loc, lastmod, cf, pr]) =>
+  urlEntry(loc, lastmod, cf, pr)
+);
+const profileEntries = profiles.map((item) =>
+  urlEntry(
+    item.url || `https://msg1000.com/profile-detail.html?id=${item.uid}`,
+    toLastmod(item.details && item.details["작성일"]),
+    "weekly",
+    "0.7"
+  )
+);
+const reviewEntries = reviews.map((item) =>
+  urlEntry(
+    item.url || `https://msg1000.com/review-detail.html?id=${item.uid}`,
+    toLastmod(item.details && item.details["작성일"]),
+    "weekly",
+    "0.6"
+  )
+);
+const noticeEntries = notices.map((item) =>
+  urlEntry(
+    item.url || `https://msg1000.com/notice-detail.html?id=${item.uid}`,
+    toLastmod(item.details && item.details["작성일"]),
+    "monthly",
+    "0.5"
+  )
+);
+
+const allEntries = [
+  ...pageEntries,
+  ...profileEntries,
+  ...reviewEntries,
+  ...noticeEntries,
+];
+
+writeUrlset(path.join(root, "sitemap.xml"), allEntries);
+
+const sitemapsDir = path.join(root, "sitemaps");
+fs.mkdirSync(sitemapsDir, { recursive: true });
+writeUrlset(path.join(sitemapsDir, "pages.xml"), pageEntries);
+writeUrlset(path.join(sitemapsDir, "profiles.xml"), profileEntries);
+writeUrlset(path.join(sitemapsDir, "reviews.xml"), reviewEntries);
+writeUrlset(path.join(sitemapsDir, "notices.xml"), noticeEntries);
+
+const indexXml = [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  "  <sitemap>",
+  "    <loc>https://msg1000.com/sitemaps/pages.xml</loc>",
+  `    <lastmod>${today}</lastmod>`,
+  "  </sitemap>",
+  "  <sitemap>",
+  "    <loc>https://msg1000.com/sitemaps/profiles.xml</loc>",
+  `    <lastmod>${today}</lastmod>`,
+  "  </sitemap>",
+  "  <sitemap>",
+  "    <loc>https://msg1000.com/sitemaps/reviews.xml</loc>",
+  `    <lastmod>${today}</lastmod>`,
+  "  </sitemap>",
+  "  <sitemap>",
+  "    <loc>https://msg1000.com/sitemaps/notices.xml</loc>",
+  `    <lastmod>${today}</lastmod>`,
+  "  </sitemap>",
+  "</sitemapindex>",
+  "",
+].join("\n");
+fs.writeFileSync(path.join(root, "sitemap-index.xml"), indexXml, "utf8");
+
+console.log({
+  total: allEntries.length,
+  pages: pageEntries.length,
+  profiles: profileEntries.length,
+  reviews: reviewEntries.length,
+  notices: noticeEntries.length,
+});

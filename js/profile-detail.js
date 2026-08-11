@@ -21,7 +21,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("detail-meta").textContent =
     `${profile.author} | ${profile.date} | 추천 ${profile.likes || 0}${views}`;
   document.getElementById("detail-body").textContent = profile.body;
+
+  const pageUrl = `https://msg1000.com/profile-detail.html?id=${encodeURIComponent(profile.id)}`;
+  const desc = `${profile.title} - 강남비너스 프로필. msg1000.com`.slice(0, 155);
   document.title = `${profile.title} | 강남비너스`;
+  const descEl = document.querySelector('meta[name="description"]');
+  if (descEl) descEl.setAttribute("content", desc);
+  const canonical = document.getElementById("canonical-link");
+  if (canonical) canonical.setAttribute("href", pageUrl);
+  const ogTitle = document.getElementById("og-title");
+  if (ogTitle) ogTitle.setAttribute("content", `${profile.title} | 강남비너스`);
+  const ogDesc = document.getElementById("og-description");
+  if (ogDesc) ogDesc.setAttribute("content", desc);
+  const ogUrl = document.getElementById("og-url");
+  if (ogUrl) ogUrl.setAttribute("content", pageUrl);
 
   if (admin && editLink) {
     editLink.href = `profile-write.html?id=${encodeURIComponent(profile.id)}`;

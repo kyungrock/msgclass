@@ -5,7 +5,8 @@
     "dev:api": "wrangler dev",
     "deploy:api": "wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply msg1000-auth --local",
-    "db:migrate": "wrangler d1 migrations apply msg1000-auth --remote"
+    "db:migrate": "wrangler d1 migrations apply msg1000-auth --remote",
+    "sitemap": "node scripts/generate-sitemap.js"
   },
   "devDependencies": {
     "wrangler": "^4.120.1"

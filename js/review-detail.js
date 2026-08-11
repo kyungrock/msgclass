@@ -21,7 +21,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("detail-meta").textContent =
     `${review.author} | ${review.date} | 추천 ${review.likes || 0}${views}`;
   document.getElementById("detail-body").textContent = review.body;
+
+  const pageUrl = `https://msg1000.com/review-detail.html?id=${encodeURIComponent(review.id)}`;
+  const bodyPreview = String(review.body || "").replace(/\s+/g, " ").trim().slice(0, 110);
+  const desc = `${review.title}. ${bodyPreview} - 강남비너스 후기`.slice(0, 155);
   document.title = `${review.title} | 강남비너스`;
+  const descEl = document.querySelector('meta[name="description"]');
+  if (descEl) descEl.setAttribute("content", desc);
+  const canonical = document.getElementById("canonical-link");
+  if (canonical) canonical.setAttribute("href", pageUrl);
+  const ogTitle = document.getElementById("og-title");
+  if (ogTitle) ogTitle.setAttribute("content", `${review.title} | 강남비너스`);
+  const ogDesc = document.getElementById("og-description");
+  if (ogDesc) ogDesc.setAttribute("content", desc);
+  const ogUrl = document.getElementById("og-url");
+  if (ogUrl) ogUrl.setAttribute("content", pageUrl);
 
   if (admin && editLink) {
     editLink.href = `review-write.html?id=${encodeURIComponent(review.id)}`;
