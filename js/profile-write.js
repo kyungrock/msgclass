@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (authorNote) authorNote.textContent = `작성자: ${item.author || authorName}`;
       if (pageTitle) pageTitle.textContent = "프로필 수정";
       if (submitBtn) submitBtn.textContent = "수정하기";
-      document.title = "프로필 수정 | 강남비너스";
+      document.title = "프로필 수정 | 강남더라임";
     } catch {
       alert("수정할 프로필을 찾을 수 없습니다.");
       window.location.href = "profile.html";

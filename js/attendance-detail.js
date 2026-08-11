@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   titleEl.textContent = item.title;
-  document.title = `${item.title} | 강남비너스`;
+  document.title = `${item.title} | 강남더라임`;
 
   if (admin && editLink) {
     editLink.href = `attendance-write.html?id=${encodeURIComponent(item.id)}`;

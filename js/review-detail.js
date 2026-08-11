@@ -24,14 +24,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const pageUrl = `https://msg1000.com/review-detail.html?id=${encodeURIComponent(review.id)}`;
   const bodyPreview = String(review.body || "").replace(/\s+/g, " ").trim().slice(0, 110);
-  const desc = `${review.title}. ${bodyPreview} - 강남비너스 후기`.slice(0, 155);
-  document.title = `${review.title} | 강남비너스`;
+  const desc = `${review.title}. ${bodyPreview} - 강남더라임 후기`.slice(0, 155);
+  document.title = `${review.title} | 강남더라임`;
   const descEl = document.querySelector('meta[name="description"]');
   if (descEl) descEl.setAttribute("content", desc);
   const canonical = document.getElementById("canonical-link");
   if (canonical) canonical.setAttribute("href", pageUrl);
   const ogTitle = document.getElementById("og-title");
-  if (ogTitle) ogTitle.setAttribute("content", `${review.title} | 강남비너스`);
+  if (ogTitle) ogTitle.setAttribute("content", `${review.title} | 강남더라임`);
   const ogDesc = document.getElementById("og-description");
   if (ogDesc) ogDesc.setAttribute("content", desc);
   const ogUrl = document.getElementById("og-url");

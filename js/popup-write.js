@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (config.title && config.body) {
       if (pageTitle) pageTitle.textContent = "팝업 수정";
       if (submitBtn) submitBtn.textContent = "수정하기";
-      document.title = "팝업 수정 | 강남비너스";
+      document.title = "팝업 수정 | 강남더라임";
     }
   } catch (err) {
     alert(err.message || "팝업 정보를 불러오지 못했습니다.");

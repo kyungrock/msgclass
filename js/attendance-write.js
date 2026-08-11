@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       titleInput.value = item.title || "";
       if (pageTitle) pageTitle.textContent = "출근부 수정";
       if (submitBtn) submitBtn.textContent = "수정하기";
-      document.title = "출근부 수정 | 강남비너스";
+      document.title = "출근부 수정 | 강남더라임";
     } catch {
       alert("수정할 출근부를 찾을 수 없습니다.");
       window.location.href = "attendance.html";

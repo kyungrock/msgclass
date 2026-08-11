@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (authorNote) authorNote.textContent = `작성자: ${item.author || authorName}`;
       if (pageTitle) pageTitle.textContent = "후기 수정";
       if (submitBtn) submitBtn.textContent = "수정하기";
-      document.title = "후기 수정 | 강남비너스";
+      document.title = "후기 수정 | 강남더라임";
     } catch {
       alert("수정할 후기를 찾을 수 없습니다.");
       window.location.href = "reviews.html";

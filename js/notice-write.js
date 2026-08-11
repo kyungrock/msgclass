@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       bodyInput.value = item.body || "";
       if (pageTitle) pageTitle.textContent = "공지 수정";
       if (submitBtn) submitBtn.textContent = "수정하기";
-      document.title = "공지 수정 | 강남비너스";
+      document.title = "공지 수정 | 강남더라임";
     } catch {
       alert("수정할 공지를 찾을 수 없습니다.");
       window.location.href = "notice.html";
