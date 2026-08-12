@@ -42,10 +42,17 @@
       <h1>출근부 등록</h1>
     </div>
 
-    <form class="auth-form write-form" id="attendance-write-form">
+    <form class="auth-form write-form attendance-write-form" id="attendance-write-form">
       <label>
         제목
-        <input type="text" name="title" id="attendance-title" maxlength="200" required placeholder="예: 8월10일(월) : NF수애, 은비, 해나..." />
+        <textarea
+          name="title"
+          id="attendance-title"
+          maxlength="200"
+          required
+          rows="6"
+          placeholder="예: 8월10일(월) : NF수애, 은비, 해나..."
+        ></textarea>
       </label>
       <button type="submit" class="btn btn-primary auth-submit">등록하기</button>
     </form>
@@ -55,10 +62,10 @@
     <p>&copy; msg1000 강남 더라임</p>
   </footer>
 
-  <script src="js/auth-api.js?v=20260811-20"></script>
-  <script src="js/admin-mode.js?v=20260811-20"></script>
-  <script src="js/main.js?v=20260811-20"></script>
-  <script src="js/auth-ui.js?v=20260811-20"></script>
-  <script src="js/attendance-write.js?v=20260811-20"></script>
+  <script src="js/auth-api.js?v=20260812-01"></script>
+  <script src="js/admin-mode.js?v=20260812-01"></script>
+  <script src="js/main.js?v=20260812-01"></script>
+  <script src="js/auth-ui.js?v=20260812-01"></script>
+  <script src="js/attendance-write.js?v=20260812-01"></script>
 </body>
 </html>

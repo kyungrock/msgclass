@@ -411,6 +411,17 @@ input {
   border-color: #666;
 }
 
+.attendance-write-form {
+  max-width: 720px;
+}
+
+.attendance-write-form #attendance-title {
+  min-height: 160px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
 .banned-form {
   display: grid;
   grid-template-columns: 1fr auto;
