@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (ogUrl) ogUrl.setAttribute("content", pageUrl);
 
   const isOwner =
-    review.userId != null && Number(review.userId) === Number(member.id);
+    review.userId != null && String(review.userId) === String(member.id);
   const canManage = isAdmin || isOwner;
 
   if (actionsEl) {

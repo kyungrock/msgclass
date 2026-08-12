@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let searchTimer = null;
 
   const render = async ({ force = false } = {}) => {
-    const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
+    const isAdmin = member.role === "admin";
     let items = [];
 
     if (!force && cachedItems) {
@@ -89,11 +89,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     items.forEach((review) => {
       const li = document.createElement("li");
       li.className = "board-item";
-      const canManage =
-        admin ||
-        (member &&
-          review.userId != null &&
-          Number(review.userId) === Number(member.id));
+      const ownerId = review.userId != null ? review.userId : review.user_id;
+      const isOwner =
+        member &&
+        ownerId != null &&
+        String(ownerId) === String(member.id);
+      // 일반 회원: 본인 글만 / 관리자: 전체 관리
+      const canManage = isAdmin || isOwner;
 
       if (canManage) {
         li.innerHTML = `
@@ -107,7 +109,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
         li.querySelector(".board-item-title").textContent = review.title;
-        li.querySelector(".board-item-meta").textContent = formatMeta(review, { showDate: admin });
+        li.querySelector(".board-item-meta").textContent = formatMeta(review, {
+          showDate: isAdmin,
+        });
         li.querySelector(".board-delete-btn").addEventListener("click", async () => {
           if (!confirm("이 후기를 삭제할까요?")) return;
           try {
@@ -125,7 +129,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           </a>
         `;
         li.querySelector(".board-item-title").textContent = review.title;
-        li.querySelector(".board-item-meta").textContent = formatMeta(review, { showDate: admin });
+        li.querySelector(".board-item-meta").textContent = formatMeta(review, {
+          showDate: isAdmin,
+        });
       }
 
       listEl.appendChild(li);

@@ -20,11 +20,14 @@ function isAdminMode() {
       return true;
     }
 
-    // 하위 호환: 예전 ?admin=1 플래그 (로그인 관리자로 대체 권장)
+    // 하위 호환 플래그는 실제 관리자 세션이 있을 때만 허용
     const params = new URLSearchParams(window.location.search);
     if (params.get("admin") === "1") {
-      localStorage.setItem(ADMIN_STORAGE_KEY, "1");
-      return true;
+      if (cached && cached.role === "admin" && cached.status !== "banned") {
+        localStorage.setItem(ADMIN_STORAGE_KEY, "1");
+        return true;
+      }
+      return false;
     }
     if (params.get("admin") === "0") {
       localStorage.removeItem(ADMIN_STORAGE_KEY);
