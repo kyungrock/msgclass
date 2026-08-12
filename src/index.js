@@ -371,7 +371,10 @@ async function handleBoardCreate(request, env, table) {
 }
 
 async function handleBoardPatch(request, env, table, id) {
-  const auth = await requireAdmin(request, env);
+  const auth =
+    table === "reviews"
+      ? await requireMember(request, env)
+      : await requireAdmin(request, env);
   if (auth.error) return auth.error;
 
   const existing = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`)
@@ -379,13 +382,24 @@ async function handleBoardPatch(request, env, table, id) {
     .first();
   if (!existing) return json({ error: "글을 찾을 수 없습니다." }, 404);
 
+  const isAdmin = auth.user.role === "admin";
+  const isOwner =
+    table === "reviews" &&
+    existing.user_id != null &&
+    Number(existing.user_id) === Number(auth.user.id);
+  if (!isAdmin && !isOwner) {
+    return json({ error: "수정 권한이 없습니다." }, 403);
+  }
+
   const body = await readJson(request);
   if (!body) return json({ error: "잘못된 요청입니다." }, 400);
 
   const title = body.title != null ? String(body.title).trim() : existing.title;
   const content = body.body != null ? String(body.body).trim() : existing.body;
   const author =
-    body.author != null ? String(body.author).trim() : existing.author;
+    isAdmin && body.author != null
+      ? String(body.author).trim()
+      : existing.author;
   const requireBody = table !== "attendance";
 
   if (!title || (requireBody && !content)) {
@@ -408,15 +422,108 @@ async function handleBoardPatch(request, env, table, id) {
 }
 
 async function handleBoardDelete(request, env, table, id) {
-  const auth = await requireAdmin(request, env);
+  const auth =
+    table === "reviews"
+      ? await requireMember(request, env)
+      : await requireAdmin(request, env);
   if (auth.error) return auth.error;
 
-  const existing = await env.DB.prepare(`SELECT id FROM ${table} WHERE id = ?`)
+  const existing = await env.DB.prepare(`SELECT * FROM ${table} WHERE id = ?`)
     .bind(id)
     .first();
   if (!existing) return json({ error: "글을 찾을 수 없습니다." }, 404);
 
+  const isAdmin = auth.user.role === "admin";
+  const isOwner =
+    table === "reviews" &&
+    existing.user_id != null &&
+    Number(existing.user_id) === Number(auth.user.id);
+  if (!isAdmin && !isOwner) {
+    return json({ error: "삭제 권한이 없습니다." }, 403);
+  }
+
   await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
+  return json({ ok: true });
+}
+
+function publicComment(row) {
+  return {
+    id: row.id,
+    reviewId: row.review_id,
+    author: row.author,
+    body: row.body,
+    createdAt: row.created_at,
+    userId: row.user_id,
+  };
+}
+
+async function handleReviewCommentsList(request, env, reviewId) {
+  const auth = await requireMember(request, env);
+  if (auth.error) return auth.error;
+
+  const review = await env.DB.prepare(`SELECT id FROM reviews WHERE id = ?`)
+    .bind(reviewId)
+    .first();
+  if (!review) return json({ error: "후기를 찾을 수 없습니다." }, 404);
+
+  const { results } = await env.DB.prepare(
+    `SELECT * FROM review_comments
+     WHERE review_id = ?
+     ORDER BY created_at ASC, id ASC`
+  )
+    .bind(reviewId)
+    .all();
+
+  return json({ items: (results || []).map(publicComment) });
+}
+
+async function handleReviewCommentCreate(request, env, reviewId) {
+  const auth = await requireAdmin(request, env);
+  if (auth.error) return auth.error;
+
+  const review = await env.DB.prepare(`SELECT id FROM reviews WHERE id = ?`)
+    .bind(reviewId)
+    .first();
+  if (!review) return json({ error: "후기를 찾을 수 없습니다." }, 404);
+
+  const body = await readJson(request);
+  if (!body) return json({ error: "잘못된 요청입니다." }, 400);
+
+  const content = String(body.body || "").trim();
+  if (!content) return json({ error: "댓글 내용을 입력해 주세요." }, 400);
+  if (content.length > 2000) return json({ error: "댓글이 너무 깁니다." }, 400);
+
+  const id = `${Date.now()}-${randomHex(4)}`;
+  const createdAt = new Date().toISOString();
+  const author = String(auth.user.nickname || auth.user.username);
+
+  await env.DB.prepare(
+    `INSERT INTO review_comments (id, review_id, author, body, created_at, user_id)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  )
+    .bind(id, reviewId, author, content, createdAt, auth.user.id)
+    .run();
+
+  const row = await env.DB.prepare(`SELECT * FROM review_comments WHERE id = ?`)
+    .bind(id)
+    .first();
+  return json({ item: publicComment(row) }, 201);
+}
+
+async function handleReviewCommentDelete(request, env, reviewId, commentId) {
+  const auth = await requireAdmin(request, env);
+  if (auth.error) return auth.error;
+
+  const existing = await env.DB.prepare(
+    `SELECT id FROM review_comments WHERE id = ? AND review_id = ?`
+  )
+    .bind(commentId, reviewId)
+    .first();
+  if (!existing) return json({ error: "댓글을 찾을 수 없습니다." }, 404);
+
+  await env.DB.prepare(`DELETE FROM review_comments WHERE id = ?`)
+    .bind(commentId)
+    .run();
   return json({ ok: true });
 }
 
@@ -606,6 +713,31 @@ export default {
         response = await handleBoardList(request, env, "reviews", { memberOnly: true });
       } else if (request.method === "POST" && path === "/api/reviews") {
         response = await handleBoardCreate(request, env, "reviews");
+      } else if (
+        request.method === "GET" &&
+        /^\/api\/reviews\/[^/]+\/comments$/.test(path)
+      ) {
+        const reviewId = decodeURIComponent(path.split("/")[3]);
+        response = await handleReviewCommentsList(request, env, reviewId);
+      } else if (
+        request.method === "POST" &&
+        /^\/api\/reviews\/[^/]+\/comments$/.test(path)
+      ) {
+        const reviewId = decodeURIComponent(path.split("/")[3]);
+        response = await handleReviewCommentCreate(request, env, reviewId);
+      } else if (
+        request.method === "DELETE" &&
+        /^\/api\/reviews\/[^/]+\/comments\/[^/]+$/.test(path)
+      ) {
+        const parts = path.split("/");
+        const reviewId = decodeURIComponent(parts[3]);
+        const commentId = decodeURIComponent(parts[5]);
+        response = await handleReviewCommentDelete(
+          request,
+          env,
+          reviewId,
+          commentId
+        );
       } else if (request.method === "GET" && /^\/api\/reviews\/[^/]+$/.test(path)) {
         response = await handleBoardGet(
           request,

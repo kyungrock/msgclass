@@ -89,8 +89,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     items.forEach((review) => {
       const li = document.createElement("li");
       li.className = "board-item";
+      const canManage =
+        admin ||
+        (member &&
+          review.userId != null &&
+          Number(review.userId) === Number(member.id));
 
-      if (admin) {
+      if (canManage) {
         li.innerHTML = `
           <div class="board-item-row">
             <a class="board-item-main" href="review-detail.html?id=${encodeURIComponent(review.id)}">

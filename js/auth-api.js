@@ -148,6 +148,31 @@ async function deleteReview(id) {
   await authApi(`/api/reviews/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
+async function fetchReviewComments(reviewId) {
+  const data = await authApi(
+    `/api/reviews/${encodeURIComponent(reviewId)}/comments`
+  );
+  return data.items || [];
+}
+
+async function createReviewComment(reviewId, payload) {
+  const data = await authApi(
+    `/api/reviews/${encodeURIComponent(reviewId)}/comments`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+  return data.item;
+}
+
+async function deleteReviewComment(reviewId, commentId) {
+  await authApi(
+    `/api/reviews/${encodeURIComponent(reviewId)}/comments/${encodeURIComponent(commentId)}`,
+    { method: "DELETE" }
+  );
+}
+
 async function fetchProfiles() {
   const data = await authApi("/api/profiles");
   return data.items || [];

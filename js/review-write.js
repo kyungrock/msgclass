@@ -32,13 +32,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (editId) {
     const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
-    if (!isAdmin) {
-      alert("후기 수정은 관리자만 가능합니다.");
-      window.location.href = "reviews.html";
-      return;
-    }
     try {
       const item = await fetchReview(editId);
+      const isOwner =
+        item.userId != null && Number(item.userId) === Number(user.id);
+      if (!isAdmin && !isOwner) {
+        alert("본인이 작성한 후기만 수정할 수 있습니다.");
+        window.location.href = "reviews.html";
+        return;
+      }
       titleInput.value = item.title || "";
       bodyInput.value = item.body || "";
       if (authorInput) authorInput.value = item.author || authorName;
