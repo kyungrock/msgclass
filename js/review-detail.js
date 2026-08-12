@@ -217,9 +217,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const created = await createReviewComment(review.id, { body });
         if (commentBody) commentBody.value = "";
         if (commentsEmptyEl) hideEl(commentsEmptyEl);
-        if (created && created.id) {
-          const exists = commentsListEl.querySelector(
-            `[data-comment-id="${CSS.escape(String(created.id))}"]`
+        if (created && created.id && commentsListEl) {
+          const exists = Array.from(commentsListEl.children).some(
+            (el) => el.dataset.commentId === String(created.id)
           );
           if (!exists) appendCommentItem(created);
         }
