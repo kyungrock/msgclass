@@ -18,17 +18,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     ? `review-detail.html?id=${encodeURIComponent(id)}`
     : "reviews.html";
 
+  const showEl = (el) => {
+    if (!el) return;
+    el.hidden = false;
+    el.removeAttribute("hidden");
+    el.style.removeProperty("display");
+  };
+
+  const hideEl = (el) => {
+    if (!el) return;
+    el.hidden = true;
+  };
+
   const member = await requireMemberToView(gateEl, { nextUrl });
   if (!member) {
     if (titleEl) titleEl.textContent = "후기";
     if (metaEl) metaEl.textContent = "";
     if (bodyEl) bodyEl.textContent = "";
-    if (commentsEl) commentsEl.hidden = true;
+    hideEl(commentsEl);
     return;
   }
-  if (gateEl) gateEl.hidden = true;
+  hideEl(gateEl);
 
-  const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
+  const isAdmin = member.role === "admin";
 
   let review = null;
   try {
@@ -40,19 +52,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (titleEl) titleEl.textContent = "후기";
       if (metaEl) metaEl.textContent = "";
       if (bodyEl) bodyEl.textContent = "";
-      if (commentsEl) commentsEl.hidden = true;
+      hideEl(commentsEl);
       return;
     }
     if (titleEl) titleEl.textContent = "후기를 찾을 수 없습니다";
     if (metaEl) metaEl.textContent = "";
     if (bodyEl) bodyEl.textContent = "목록으로 돌아가 다시 선택해 주세요.";
-    if (commentsEl) commentsEl.hidden = true;
+    hideEl(commentsEl);
     return;
   }
 
   titleEl.textContent = review.title;
   const views = review.views != null ? ` | 조회 ${review.views}` : "";
-  const datePart = admin && review.date ? ` | ${review.date}` : "";
+  const datePart = isAdmin && review.date ? ` | ${review.date}` : "";
   metaEl.textContent = `${review.author}${datePart}${views}`;
   bodyEl.textContent = review.body;
 
@@ -73,11 +85,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const isOwner =
     review.userId != null && Number(review.userId) === Number(member.id);
-  const canManage = admin || isOwner;
+  const canManage = isAdmin || isOwner;
 
   if (actionsEl) {
-    actionsEl.hidden = !canManage;
     actionsEl.removeAttribute("data-admin-only");
+    if (canManage) showEl(actionsEl);
+    else hideEl(actionsEl);
   }
 
   if (canManage && editLink) {
@@ -108,18 +121,68 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${y}.${m}.${day} ${hh}:${mm}`;
   };
 
+  const appendCommentItem = (comment) => {
+    if (!commentsListEl || !comment) return;
+    const li = document.createElement("li");
+    li.className = "comment-item";
+    li.dataset.commentId = String(comment.id || "");
+
+    const head = document.createElement("div");
+    head.className = "comment-head";
+
+    const author = document.createElement("span");
+    author.className = "comment-author";
+    author.textContent = comment.author || "관리자";
+
+    const date = document.createElement("span");
+    date.className = "comment-date";
+    date.textContent = formatCommentDate(comment.createdAt);
+
+    head.appendChild(author);
+    head.appendChild(date);
+
+    const body = document.createElement("p");
+    body.className = "comment-body";
+    body.textContent = comment.body || "";
+
+    li.appendChild(head);
+    li.appendChild(body);
+
+    if (isAdmin) {
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "btn comment-delete-btn";
+      del.textContent = "삭제";
+      del.addEventListener("click", async () => {
+        if (!confirm("이 댓글을 삭제할까요?")) return;
+        try {
+          await deleteReviewComment(review.id, comment.id);
+          await renderComments();
+        } catch (err) {
+          alert(err.message || "댓글 삭제에 실패했습니다.");
+        }
+      });
+      li.appendChild(del);
+    }
+
+    commentsListEl.appendChild(li);
+  };
+
   const renderComments = async () => {
     if (!commentsEl || !commentsListEl) return;
-    commentsEl.hidden = false;
-    if (commentForm) commentForm.hidden = !admin;
+
+    showEl(commentsEl);
+    if (isAdmin) showEl(commentForm);
+    else hideEl(commentForm);
 
     let items = [];
     try {
       items = await fetchReviewComments(review.id);
+      if (!Array.isArray(items)) items = [];
     } catch (err) {
       commentsListEl.innerHTML = "";
       if (commentsEmptyEl) {
-        commentsEmptyEl.hidden = false;
+        showEl(commentsEmptyEl);
         commentsEmptyEl.textContent = err.message || "댓글을 불러오지 못했습니다.";
       }
       return;
@@ -127,49 +190,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     commentsListEl.innerHTML = "";
     if (commentsEmptyEl) {
-      commentsEmptyEl.hidden = items.length > 0;
-      commentsEmptyEl.textContent = "등록된 댓글이 없습니다.";
+      if (items.length > 0) hideEl(commentsEmptyEl);
+      else {
+        showEl(commentsEmptyEl);
+        commentsEmptyEl.textContent = "등록된 댓글이 없습니다.";
+      }
     }
 
-    items.forEach((comment) => {
-      const li = document.createElement("li");
-      li.className = "comment-item";
-      li.innerHTML = `
-        <div class="comment-head">
-          <span class="comment-author"></span>
-          <span class="comment-date"></span>
-        </div>
-        <p class="comment-body"></p>
-      `;
-      li.querySelector(".comment-author").textContent = comment.author || "관리자";
-      li.querySelector(".comment-date").textContent = formatCommentDate(comment.createdAt);
-      li.querySelector(".comment-body").textContent = comment.body || "";
-
-      if (admin) {
-        const del = document.createElement("button");
-        del.type = "button";
-        del.className = "btn comment-delete-btn";
-        del.textContent = "삭제";
-        del.addEventListener("click", async () => {
-          if (!confirm("이 댓글을 삭제할까요?")) return;
-          try {
-            await deleteReviewComment(review.id, comment.id);
-            await renderComments();
-          } catch (err) {
-            alert(err.message || "댓글 삭제에 실패했습니다.");
-          }
-        });
-        li.appendChild(del);
-      }
-
-      commentsListEl.appendChild(li);
-    });
+    items.forEach((comment) => appendCommentItem(comment));
   };
 
   if (commentForm) {
     commentForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!admin) return;
+      if (!isAdmin) {
+        alert("관리자만 댓글을 작성할 수 있습니다.");
+        return;
+      }
       const body = commentBody ? commentBody.value.trim() : "";
       if (!body) {
         alert("댓글 내용을 입력해 주세요.");
@@ -177,8 +214,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       if (commentSubmit) commentSubmit.disabled = true;
       try {
-        await createReviewComment(review.id, { body });
+        const created = await createReviewComment(review.id, { body });
         if (commentBody) commentBody.value = "";
+        if (commentsEmptyEl) hideEl(commentsEmptyEl);
+        if (created && created.id) {
+          const exists = commentsListEl.querySelector(
+            `[data-comment-id="${CSS.escape(String(created.id))}"]`
+          );
+          if (!exists) appendCommentItem(created);
+        }
         await renderComments();
       } catch (err) {
         alert(err.message || "댓글 등록에 실패했습니다.");
@@ -188,5 +232,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  showEl(commentsEl);
+  if (isAdmin) showEl(commentForm);
   await renderComments();
 });
