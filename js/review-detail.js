@@ -91,24 +91,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (actionsEl) {
     actionsEl.removeAttribute("data-admin-only");
-    if (canManage) showEl(actionsEl);
-    else hideEl(actionsEl);
-  }
-
-  if (canManage && editLink) {
-    editLink.href = `review-write.html?id=${encodeURIComponent(review.id)}`;
-  }
-
-  if (canManage && deleteBtn) {
-    deleteBtn.addEventListener("click", async () => {
-      if (!confirm("이 후기를 삭제할까요?")) return;
-      try {
-        await deleteReview(review.id);
-        window.location.href = "reviews.html";
-      } catch (err) {
-        alert(err.message || "삭제에 실패했습니다.");
+    if (canManage) {
+      showEl(actionsEl);
+      if (editLink) {
+        editLink.hidden = false;
+        editLink.href = `review-write.html?id=${encodeURIComponent(review.id)}`;
       }
-    });
+      if (deleteBtn) {
+        deleteBtn.hidden = false;
+        deleteBtn.addEventListener("click", async () => {
+          if (!confirm("이 후기를 삭제할까요?")) return;
+          try {
+            await deleteReview(review.id);
+            window.location.href = "reviews.html";
+          } catch (err) {
+            alert(err.message || "삭제에 실패했습니다.");
+          }
+        });
+      }
+    } else {
+      hideEl(actionsEl);
+      if (editLink) {
+        editLink.hidden = true;
+        editLink.removeAttribute("href");
+      }
+      if (deleteBtn) deleteBtn.hidden = true;
+    }
   }
 
   const formatCommentDate = (value) => {

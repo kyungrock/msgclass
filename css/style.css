@@ -367,6 +367,10 @@ input {
   margin-top: 24px;
 }
 
+.detail-actions[hidden] {
+  display: none !important;
+}
+
 .board-item-title {
   margin: 0 0 8px;
   font-size: 0.98rem;
