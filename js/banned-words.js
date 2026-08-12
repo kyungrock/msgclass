@@ -74,15 +74,35 @@ async function refreshBannedWords({ migrateLocal = false } = {}) {
         let words = await fetchBannedWords();
         const local = readLocalBannedWords();
 
-        // 기존 관리자 localStorage 금지어를 서버로 1회 이전
+        // 관리자 페이지 최초 1회: 기존 localStorage 금지어를 서버에 병합
         if (
           migrateLocal &&
           typeof saveBannedWordsApi === "function" &&
           local &&
-          local.length &&
-          (!words || !words.length)
+          local.length
         ) {
-          words = await saveBannedWordsApi(local);
+          let migrated = false;
+          try {
+            migrated = localStorage.getItem("gnclass-banned-words-migrated-v1") === "1";
+          } catch {
+            migrated = false;
+          }
+          if (!migrated) {
+            const serverSet = new Set(
+              (words || []).map((w) => String(w).toLowerCase())
+            );
+            const missing = local.filter(
+              (w) => !serverSet.has(String(w).toLowerCase())
+            );
+            if (missing.length) {
+              words = await saveBannedWordsApi([...(words || []), ...missing]);
+            }
+            try {
+              localStorage.setItem("gnclass-banned-words-migrated-v1", "1");
+            } catch {
+              /* ignore */
+            }
+          }
         }
 
         return writeLocalBannedWords(words && words.length ? words : DEFAULT_BANNED_WORDS);
