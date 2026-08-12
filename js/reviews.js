@@ -94,8 +94,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         member &&
         ownerId != null &&
         String(ownerId) === String(member.id);
-      // 본인 글만 수정/삭제 (관리자도 남의 후기는 불가)
-      const canManage = isOwner;
+      // 본인 글 또는 관리자
+      const canManage = isOwner || isAdmin;
 
       if (canManage) {
         li.innerHTML = `

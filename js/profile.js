@@ -39,7 +39,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   let searchTimer = null;
 
   const render = async ({ force = false } = {}) => {
-    const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
+    const admin =
+      (member && member.role === "admin") ||
+      (typeof isAdminMode === "function" && isAdminMode());
     let items = [];
 
     if (!force && cachedItems) {

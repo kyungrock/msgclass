@@ -86,8 +86,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ownerId = review.userId != null ? review.userId : review.user_id;
   const isOwner =
     ownerId != null && String(ownerId) === String(member.id);
-  // 본인 글만 수정/삭제 (관리자도 남의 후기는 불가)
-  const canManage = isOwner;
+  // 본인 글 또는 관리자
+  const canManage = isOwner || isAdmin;
 
   if (actionsEl) {
     actionsEl.removeAttribute("data-admin-only");

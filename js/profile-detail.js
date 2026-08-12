@@ -20,7 +20,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   if (gateEl) gateEl.hidden = true;
 
-  const admin = typeof isAdminMode === "function" ? isAdminMode() : false;
+  const admin =
+    member.role === "admin" ||
+    (typeof isAdminMode === "function" && isAdminMode());
 
   let profile = null;
   try {
@@ -60,11 +62,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ogUrl = document.getElementById("og-url");
   if (ogUrl) ogUrl.setAttribute("content", pageUrl);
 
+  const actionsEl = document.getElementById("detail-actions");
+  if (actionsEl) {
+    if (admin) {
+      actionsEl.hidden = false;
+      actionsEl.removeAttribute("hidden");
+      actionsEl.style.removeProperty("display");
+    } else {
+      actionsEl.hidden = true;
+    }
+  }
+
   if (admin && editLink) {
+    editLink.hidden = false;
     editLink.href = `profile-write.html?id=${encodeURIComponent(profile.id)}`;
+  } else if (editLink) {
+    editLink.hidden = true;
   }
 
   if (admin && deleteBtn) {
+    deleteBtn.hidden = false;
     deleteBtn.addEventListener("click", async () => {
       if (!confirm("이 프로필을 삭제할까요?")) return;
       try {
@@ -74,5 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert(err.message || "삭제에 실패했습니다.");
       }
     });
+  } else if (deleteBtn) {
+    deleteBtn.hidden = true;
   }
 });

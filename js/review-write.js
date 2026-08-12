@@ -36,7 +36,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const ownerId = item.userId != null ? item.userId : item.user_id;
       const isOwner =
         ownerId != null && String(ownerId) === String(user.id);
-      if (!isOwner) {
+      const isAdmin = user.role === "admin";
+      if (!isOwner && !isAdmin) {
         alert("본인이 작성한 후기만 수정할 수 있습니다.");
         window.location.href = "reviews.html";
         return;

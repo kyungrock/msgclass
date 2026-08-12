@@ -383,10 +383,11 @@ async function handleBoardPatch(request, env, table, id) {
   if (!existing) return json({ error: "글을 찾을 수 없습니다." }, 404);
 
   if (table === "reviews") {
+    const isAdmin = auth.user.role === "admin";
     const isOwner =
       existing.user_id != null &&
       String(existing.user_id) === String(auth.user.id);
-    if (!isOwner) {
+    if (!isAdmin && !isOwner) {
       return json({ error: "본인이 작성한 후기만 수정할 수 있습니다." }, 403);
     }
   } else if (auth.user.role !== "admin") {
@@ -439,10 +440,11 @@ async function handleBoardDelete(request, env, table, id) {
   if (!existing) return json({ error: "글을 찾을 수 없습니다." }, 404);
 
   if (table === "reviews") {
+    const isAdmin = auth.user.role === "admin";
     const isOwner =
       existing.user_id != null &&
       String(existing.user_id) === String(auth.user.id);
-    if (!isOwner) {
+    if (!isAdmin && !isOwner) {
       return json({ error: "본인이 작성한 후기만 삭제할 수 있습니다." }, 403);
     }
   } else if (auth.user.role !== "admin") {
