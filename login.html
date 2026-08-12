@@ -79,7 +79,10 @@
         });
         setAdminMode(user.role === "admin");
         applyAdminVisibility();
-        window.location.href = "index.html";
+        const next = new URLSearchParams(location.search).get("next");
+        const safeNext =
+          next && !/^https?:/i.test(next) && !next.startsWith("//") ? next : "index.html";
+        window.location.href = safeNext;
       } catch (err) {
         errorEl.textContent = err.message || "로그인에 실패했습니다.";
         errorEl.hidden = false;

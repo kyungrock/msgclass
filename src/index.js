@@ -309,12 +309,20 @@ async function getPost(env, table, id) {
   return row ? publicPost(row) : null;
 }
 
-async function handleBoardList(env, table) {
+async function handleBoardList(request, env, table, { memberOnly = false } = {}) {
+  if (memberOnly) {
+    const auth = await requireMember(request, env);
+    if (auth.error) return auth.error;
+  }
   const items = await listPosts(env, table);
   return json({ items });
 }
 
-async function handleBoardGet(env, table, id) {
+async function handleBoardGet(request, env, table, id, { memberOnly = false } = {}) {
+  if (memberOnly) {
+    const auth = await requireMember(request, env);
+    if (auth.error) return auth.error;
+  }
   const item = await getPost(env, table, id);
   if (!item) return json({ error: "글을 찾을 수 없습니다." }, 404);
   return json({ item });
@@ -595,11 +603,17 @@ export default {
         const id = Number(path.split("/").pop());
         response = await handleMemberDelete(request, env, id);
       } else if (request.method === "GET" && path === "/api/reviews") {
-        response = await handleBoardList(env, "reviews");
+        response = await handleBoardList(request, env, "reviews", { memberOnly: true });
       } else if (request.method === "POST" && path === "/api/reviews") {
         response = await handleBoardCreate(request, env, "reviews");
       } else if (request.method === "GET" && /^\/api\/reviews\/[^/]+$/.test(path)) {
-        response = await handleBoardGet(env, "reviews", decodeURIComponent(path.split("/").pop()));
+        response = await handleBoardGet(
+          request,
+          env,
+          "reviews",
+          decodeURIComponent(path.split("/").pop()),
+          { memberOnly: true }
+        );
       } else if (request.method === "PATCH" && /^\/api\/reviews\/[^/]+$/.test(path)) {
         response = await handleBoardPatch(
           request,
@@ -615,11 +629,17 @@ export default {
           decodeURIComponent(path.split("/").pop())
         );
       } else if (request.method === "GET" && path === "/api/profiles") {
-        response = await handleBoardList(env, "profiles");
+        response = await handleBoardList(request, env, "profiles", { memberOnly: true });
       } else if (request.method === "POST" && path === "/api/profiles") {
         response = await handleBoardCreate(request, env, "profiles");
       } else if (request.method === "GET" && /^\/api\/profiles\/[^/]+$/.test(path)) {
-        response = await handleBoardGet(env, "profiles", decodeURIComponent(path.split("/").pop()));
+        response = await handleBoardGet(
+          request,
+          env,
+          "profiles",
+          decodeURIComponent(path.split("/").pop()),
+          { memberOnly: true }
+        );
       } else if (request.method === "PATCH" && /^\/api\/profiles\/[^/]+$/.test(path)) {
         response = await handleBoardPatch(
           request,
@@ -635,11 +655,16 @@ export default {
           decodeURIComponent(path.split("/").pop())
         );
       } else if (request.method === "GET" && path === "/api/notices") {
-        response = await handleBoardList(env, "notices");
+        response = await handleBoardList(request, env, "notices");
       } else if (request.method === "POST" && path === "/api/notices") {
         response = await handleBoardCreate(request, env, "notices");
       } else if (request.method === "GET" && /^\/api\/notices\/[^/]+$/.test(path)) {
-        response = await handleBoardGet(env, "notices", decodeURIComponent(path.split("/").pop()));
+        response = await handleBoardGet(
+          request,
+          env,
+          "notices",
+          decodeURIComponent(path.split("/").pop())
+        );
       } else if (request.method === "PATCH" && /^\/api\/notices\/[^/]+$/.test(path)) {
         response = await handleBoardPatch(
           request,
@@ -655,11 +680,12 @@ export default {
           decodeURIComponent(path.split("/").pop())
         );
       } else if (request.method === "GET" && path === "/api/attendance") {
-        response = await handleBoardList(env, "attendance");
+        response = await handleBoardList(request, env, "attendance");
       } else if (request.method === "POST" && path === "/api/attendance") {
         response = await handleBoardCreate(request, env, "attendance");
       } else if (request.method === "GET" && /^\/api\/attendance\/[^/]+$/.test(path)) {
         response = await handleBoardGet(
+          request,
           env,
           "attendance",
           decodeURIComponent(path.split("/").pop())

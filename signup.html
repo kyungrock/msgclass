@@ -96,7 +96,10 @@
         setAdminMode(user.role === "admin");
         applyAdminVisibility();
         alert("회원가입이 완료되었습니다.");
-        window.location.href = "index.html";
+        const next = new URLSearchParams(location.search).get("next");
+        const safeNext =
+          next && !/^https?:/i.test(next) && !next.startsWith("//") ? next : "index.html";
+        window.location.href = safeNext;
       } catch (err) {
         errorEl.textContent = err.message || "회원가입에 실패했습니다.";
         errorEl.hidden = false;

@@ -12,14 +12,28 @@ function matchesQuery(item, query) {
   return haystack.includes(query);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const listEl = document.getElementById("profile-list");
   const countEl = document.getElementById("profile-count");
   const emptyEl = document.getElementById("profile-empty");
   const sortEl = document.getElementById("profile-sort");
   const searchEl = document.getElementById("profile-search");
+  const toolbarEl = document.querySelector(".board-toolbar");
+  const gateEl = document.getElementById("member-gate");
 
   if (!listEl) return;
+
+  const member = await requireMemberToView(gateEl || emptyEl, {
+    nextUrl: "profile.html",
+  });
+  if (!member) {
+    listEl.innerHTML = "";
+    if (toolbarEl) toolbarEl.hidden = true;
+    if (countEl) countEl.textContent = "0";
+    if (emptyEl && gateEl) emptyEl.hidden = true;
+    return;
+  }
+  if (gateEl) gateEl.hidden = true;
 
   let cachedItems = null;
   let searchTimer = null;
@@ -37,6 +51,13 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         cachedItems = null;
         listEl.innerHTML = "";
+        if (err.status === 401 || err.status === 403) {
+          if (toolbarEl) toolbarEl.hidden = true;
+          renderLoginRequiredGate(gateEl || emptyEl, { nextUrl: "profile.html" });
+          if (emptyEl && gateEl) emptyEl.hidden = true;
+          if (countEl) countEl.textContent = "0";
+          return;
+        }
         if (emptyEl) {
           emptyEl.hidden = false;
           emptyEl.textContent = err.message || "프로필을 불러오지 못했습니다.";
