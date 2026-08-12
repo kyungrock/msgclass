@@ -382,12 +382,14 @@ async function handleBoardPatch(request, env, table, id) {
     .first();
   if (!existing) return json({ error: "글을 찾을 수 없습니다." }, 404);
 
-  const isAdmin = auth.user.role === "admin";
-  const isOwner =
-    table === "reviews" &&
-    existing.user_id != null &&
-    Number(existing.user_id) === Number(auth.user.id);
-  if (!isAdmin && !isOwner) {
+  if (table === "reviews") {
+    const isOwner =
+      existing.user_id != null &&
+      String(existing.user_id) === String(auth.user.id);
+    if (!isOwner) {
+      return json({ error: "본인이 작성한 후기만 수정할 수 있습니다." }, 403);
+    }
+  } else if (auth.user.role !== "admin") {
     return json({ error: "수정 권한이 없습니다." }, 403);
   }
 
@@ -396,10 +398,13 @@ async function handleBoardPatch(request, env, table, id) {
 
   const title = body.title != null ? String(body.title).trim() : existing.title;
   const content = body.body != null ? String(body.body).trim() : existing.body;
+  // 후기는 작성자 변경 불가
   const author =
-    isAdmin && body.author != null
-      ? String(body.author).trim()
-      : existing.author;
+    table === "reviews"
+      ? existing.author
+      : body.author != null
+        ? String(body.author).trim()
+        : existing.author;
   const requireBody = table !== "attendance";
 
   if (!title || (requireBody && !content)) {
@@ -433,12 +438,14 @@ async function handleBoardDelete(request, env, table, id) {
     .first();
   if (!existing) return json({ error: "글을 찾을 수 없습니다." }, 404);
 
-  const isAdmin = auth.user.role === "admin";
-  const isOwner =
-    table === "reviews" &&
-    existing.user_id != null &&
-    Number(existing.user_id) === Number(auth.user.id);
-  if (!isAdmin && !isOwner) {
+  if (table === "reviews") {
+    const isOwner =
+      existing.user_id != null &&
+      String(existing.user_id) === String(auth.user.id);
+    if (!isOwner) {
+      return json({ error: "본인이 작성한 후기만 삭제할 수 있습니다." }, 403);
+    }
+  } else if (auth.user.role !== "admin") {
     return json({ error: "삭제 권한이 없습니다." }, 403);
   }
 

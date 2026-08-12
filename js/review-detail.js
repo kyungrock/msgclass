@@ -83,9 +83,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ogUrl = document.getElementById("og-url");
   if (ogUrl) ogUrl.setAttribute("content", pageUrl);
 
+  const ownerId = review.userId != null ? review.userId : review.user_id;
   const isOwner =
-    review.userId != null && String(review.userId) === String(member.id);
-  const canManage = isAdmin || isOwner;
+    ownerId != null && String(ownerId) === String(member.id);
+  // 본인 글만 수정/삭제 (관리자도 남의 후기는 불가)
+  const canManage = isOwner;
 
   if (actionsEl) {
     actionsEl.removeAttribute("data-admin-only");

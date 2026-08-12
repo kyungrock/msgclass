@@ -31,13 +31,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (authorNote) authorNote.textContent = `작성자: ${authorName}`;
 
   if (editId) {
-    const isAdmin = user.role === "admin";
     try {
       const item = await fetchReview(editId);
       const ownerId = item.userId != null ? item.userId : item.user_id;
       const isOwner =
         ownerId != null && String(ownerId) === String(user.id);
-      if (!isAdmin && !isOwner) {
+      if (!isOwner) {
         alert("본인이 작성한 후기만 수정할 수 있습니다.");
         window.location.href = "reviews.html";
         return;
