@@ -279,3 +279,19 @@ async function updateAttendance(id, payload) {
 async function deleteAttendance(id) {
   await authApi(`/api/attendance/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
+
+async function fetchBannedWords() {
+  const data = await authApi("/api/banned-words");
+  return data.words || [];
+}
+
+async function saveBannedWordsApi(wordsOrText) {
+  const payload = Array.isArray(wordsOrText)
+    ? { words: wordsOrText }
+    : { text: String(wordsOrText || "") };
+  const data = await authApi("/api/banned-words", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return data.words || [];
+}

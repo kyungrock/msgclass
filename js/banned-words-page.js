@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("banned-form");
   const input = document.getElementById("banned-input");
   const listEl = document.getElementById("banned-list");
@@ -23,9 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
       removeBtn.type = "button";
       removeBtn.className = "btn";
       removeBtn.textContent = "삭제";
-      removeBtn.addEventListener("click", () => {
-        removeBannedWord(word);
-        render();
+      removeBtn.addEventListener("click", async () => {
+        try {
+          await removeBannedWordAsync(word);
+          render();
+        } catch (err) {
+          alert(err.message || "금지어 삭제에 실패했습니다.");
+        }
       });
 
       li.append(text, removeBtn);
@@ -33,25 +37,38 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  form.addEventListener("submit", (e) => {
+  try {
+    await refreshBannedWords({ migrateLocal: true });
+  } catch {
+    /* keep local fallback */
+  }
+  render();
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const result = addBannedWords(input.value);
-    if (!result.ok) {
-      alert(result.message);
-      return;
+    try {
+      const result = await addBannedWordsAsync(input.value);
+      if (!result.ok) {
+        alert(result.message);
+        return;
+      }
+      input.value = "";
+      input.focus();
+      render();
+    } catch (err) {
+      alert(err.message || "금지어 저장에 실패했습니다.");
     }
-    input.value = "";
-    input.focus();
-    render();
   });
 
   if (saveTextBtn && textEl) {
-    saveTextBtn.addEventListener("click", () => {
-      setBannedWordsFromText(textEl.value);
-      render();
-      alert("금지어가 콤마 기준으로 저장되었습니다.");
+    saveTextBtn.addEventListener("click", async () => {
+      try {
+        await persistBannedWords(parseBannedWordsInput(textEl.value));
+        render();
+        alert("금지어가 콤마 기준으로 저장되었습니다.");
+      } catch (err) {
+        alert(err.message || "금지어 저장에 실패했습니다.");
+      }
     });
   }
-
-  render();
 });

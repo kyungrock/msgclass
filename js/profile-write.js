@@ -59,7 +59,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    if (typeof findBannedWordInText === "function") {
+    if (typeof findBannedWordInTextAsync === "function") {
+      const bannedInBody = await findBannedWordInTextAsync(body);
+      if (bannedInBody) {
+        alert(`${bannedInBody} 금지어가 있습니다.`);
+        return;
+      }
+      const bannedInTitle = await findBannedWordInTextAsync(title);
+      if (bannedInTitle) {
+        alert(`${bannedInTitle} 금지어가 있습니다.`);
+        return;
+      }
+    } else if (typeof findBannedWordInText === "function") {
       const bannedInBody = findBannedWordInText(body);
       if (bannedInBody) {
         alert(`${bannedInBody} 금지어가 있습니다.`);

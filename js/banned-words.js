@@ -1,6 +1,9 @@
 const BANNED_WORDS_KEY = "gnclass-banned-words";
 const DEFAULT_BANNED_WORDS = ["야구", "농구", "수영", "섹스"];
 
+let cachedBannedWords = null;
+let bannedWordsLoadPromise = null;
+
 function parseBannedWordsInput(value) {
   return String(value || "")
     .split(",")
@@ -8,21 +11,7 @@ function parseBannedWordsInput(value) {
     .filter(Boolean);
 }
 
-function loadBannedWords() {
-  try {
-    const raw = localStorage.getItem(BANNED_WORDS_KEY);
-    if (!raw) {
-      localStorage.setItem(BANNED_WORDS_KEY, JSON.stringify(DEFAULT_BANNED_WORDS));
-      return [...DEFAULT_BANNED_WORDS];
-    }
-    const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [...DEFAULT_BANNED_WORDS];
-  } catch {
-    return [...DEFAULT_BANNED_WORDS];
-  }
-}
-
-function saveBannedWords(words) {
+function normalizeBannedWords(words) {
   const unique = [];
   const seen = new Set();
 
@@ -35,8 +24,77 @@ function saveBannedWords(words) {
     unique.push(normalized);
   });
 
-  localStorage.setItem(BANNED_WORDS_KEY, JSON.stringify(unique));
   return unique;
+}
+
+function readLocalBannedWords() {
+  try {
+    const raw = localStorage.getItem(BANNED_WORDS_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? normalizeBannedWords(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalBannedWords(words) {
+  const unique = normalizeBannedWords(words);
+  try {
+    localStorage.setItem(BANNED_WORDS_KEY, JSON.stringify(unique));
+  } catch {
+    /* ignore */
+  }
+  cachedBannedWords = unique;
+  return unique;
+}
+
+function loadBannedWords() {
+  if (cachedBannedWords) return [...cachedBannedWords];
+  const local = readLocalBannedWords();
+  if (local && local.length) {
+    cachedBannedWords = local;
+    return [...local];
+  }
+  return [...DEFAULT_BANNED_WORDS];
+}
+
+function saveBannedWords(words) {
+  return writeLocalBannedWords(words);
+}
+
+async function refreshBannedWords({ migrateLocal = false } = {}) {
+  if (typeof fetchBannedWords !== "function") {
+    return loadBannedWords();
+  }
+
+  if (!bannedWordsLoadPromise) {
+    bannedWordsLoadPromise = (async () => {
+      try {
+        let words = await fetchBannedWords();
+        const local = readLocalBannedWords();
+
+        // 기존 관리자 localStorage 금지어를 서버로 1회 이전
+        if (
+          migrateLocal &&
+          typeof saveBannedWordsApi === "function" &&
+          local &&
+          local.length &&
+          (!words || !words.length)
+        ) {
+          words = await saveBannedWordsApi(local);
+        }
+
+        return writeLocalBannedWords(words && words.length ? words : DEFAULT_BANNED_WORDS);
+      } catch {
+        return loadBannedWords();
+      } finally {
+        bannedWordsLoadPromise = null;
+      }
+    })();
+  }
+
+  return bannedWordsLoadPromise;
 }
 
 function getBannedWordsText() {
@@ -48,6 +106,15 @@ function setBannedWordsFromText(value) {
   return saveBannedWords(words);
 }
 
+async function persistBannedWords(words) {
+  const unique = normalizeBannedWords(words);
+  if (typeof saveBannedWordsApi === "function") {
+    const saved = await saveBannedWordsApi(unique);
+    return writeLocalBannedWords(saved);
+  }
+  return writeLocalBannedWords(unique);
+}
+
 function addBannedWords(value) {
   const incoming = parseBannedWordsInput(value);
   if (!incoming.length) {
@@ -56,14 +123,25 @@ function addBannedWords(value) {
 
   const current = loadBannedWords();
   const merged = saveBannedWords([...current, ...incoming]);
-  const addedCount = incoming.filter((word) =>
-    merged.some((item) => item.toLowerCase() === word.toLowerCase())
-  ).length;
 
   return {
     ok: true,
     words: merged,
-    addedCount,
+    message: `${incoming.length}개 처리되었습니다. (현재 총 ${merged.length}개)`,
+  };
+}
+
+async function addBannedWordsAsync(value) {
+  const incoming = parseBannedWordsInput(value);
+  if (!incoming.length) {
+    return { ok: false, message: "금지어를 입력해 주세요. 예: 야구,농구,수영" };
+  }
+
+  const current = loadBannedWords();
+  const merged = await persistBannedWords([...current, ...incoming]);
+  return {
+    ok: true,
+    words: merged,
     message: `${incoming.length}개 처리되었습니다. (현재 총 ${merged.length}개)`,
   };
 }
@@ -71,6 +149,11 @@ function addBannedWords(value) {
 function removeBannedWord(word) {
   const words = loadBannedWords().filter((item) => item !== word);
   return saveBannedWords(words);
+}
+
+async function removeBannedWordAsync(word) {
+  const words = loadBannedWords().filter((item) => item !== word);
+  return persistBannedWords(words);
 }
 
 function findBannedWordInText(text) {
@@ -84,4 +167,9 @@ function findBannedWordInText(text) {
     }
   }
   return null;
+}
+
+async function findBannedWordInTextAsync(text) {
+  await refreshBannedWords();
+  return findBannedWordInText(text);
 }

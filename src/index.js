@@ -350,6 +350,11 @@ async function handleBoardCreate(request, env, table) {
   if (title.length > 200) return json({ error: "제목이 너무 깁니다." }, 400);
   if (content.length > 10000) return json({ error: "내용이 너무 깁니다." }, 400);
 
+  if (table === "reviews" || table === "profiles") {
+    const banned = await rejectIfBannedContent(env, title, content);
+    if (banned) return banned;
+  }
+
   const author =
     body.author != null && String(body.author).trim()
       ? String(body.author).trim()
@@ -413,6 +418,11 @@ async function handleBoardPatch(request, env, table, id) {
       { error: requireBody ? "제목과 내용을 입력해 주세요." : "제목을 입력해 주세요." },
       400
     );
+  }
+
+  if (table === "reviews" || table === "profiles") {
+    const banned = await rejectIfBannedContent(env, title, content);
+    if (banned) return banned;
   }
 
   await env.DB.prepare(
@@ -606,6 +616,88 @@ async function handlePopupDelete(request, env) {
     .run();
 
   return json({ ok: true });
+}
+
+function parseBannedWordsList(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((word) => String(word || "").trim())
+      .filter(Boolean);
+  }
+  return String(value || "")
+    .split(",")
+    .map((word) => word.trim())
+    .filter(Boolean);
+}
+
+function normalizeBannedWords(words) {
+  const unique = [];
+  const seen = new Set();
+  for (const word of words) {
+    const normalized = String(word || "").trim();
+    if (!normalized) continue;
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(normalized);
+  }
+  return unique;
+}
+
+async function getBannedWords(env) {
+  const row = await env.DB.prepare(
+    `SELECT words FROM banned_words_config WHERE id = 1`
+  ).first();
+  return normalizeBannedWords(parseBannedWordsList(row && row.words));
+}
+
+function findBannedWord(text, words) {
+  const source = String(text || "").toLowerCase();
+  for (const word of words) {
+    if (!word) continue;
+    if (source.includes(String(word).toLowerCase())) return word;
+  }
+  return null;
+}
+
+async function rejectIfBannedContent(env, title, content) {
+  const words = await getBannedWords(env);
+  const hit =
+    findBannedWord(title, words) || findBannedWord(content, words);
+  if (!hit) return null;
+  return json({ error: `${hit} 금지어가 있습니다.` }, 400);
+}
+
+async function handleBannedWordsGet(request, env) {
+  const auth = await requireMember(request, env);
+  if (auth.error) return auth.error;
+  const words = await getBannedWords(env);
+  return json({ words, text: words.join(",") });
+}
+
+async function handleBannedWordsPut(request, env) {
+  const auth = await requireAdmin(request, env);
+  if (auth.error) return auth.error;
+
+  const body = await readJson(request);
+  if (!body) return json({ error: "잘못된 요청입니다." }, 400);
+
+  const words = normalizeBannedWords(
+    body.words != null ? parseBannedWordsList(body.words) : parseBannedWordsList(body.text)
+  );
+  const updatedAt = new Date().toISOString();
+
+  await env.DB.prepare(
+    `INSERT INTO banned_words_config (id, words, updated_at)
+     VALUES (1, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       words = excluded.words,
+       updated_at = excluded.updated_at`
+  )
+    .bind(words.join(","), updatedAt)
+    .run();
+
+  return json({ words, text: words.join(","), updatedAt });
 }
 
 async function handleMembersList(request, env) {
@@ -851,6 +943,10 @@ export default {
         response = await handlePopupPut(request, env);
       } else if (request.method === "DELETE" && path === "/api/popup") {
         response = await handlePopupDelete(request, env);
+      } else if (request.method === "GET" && path === "/api/banned-words") {
+        response = await handleBannedWordsGet(request, env);
+      } else if (request.method === "PUT" && path === "/api/banned-words") {
+        response = await handleBannedWordsPut(request, env);
       } else {
         response = json({ error: "Not found" }, 404);
       }
