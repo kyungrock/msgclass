@@ -123,8 +123,9 @@ async function fetchReviews() {
   return data.items || [];
 }
 
-async function fetchReview(id) {
-  const data = await authApi(`/api/reviews/${encodeURIComponent(id)}`);
+async function fetchReview(id, { countView = true } = {}) {
+  const q = countView ? "" : "?nocount=1";
+  const data = await authApi(`/api/reviews/${encodeURIComponent(id)}${q}`);
   return data.item;
 }
 
@@ -178,8 +179,9 @@ async function fetchProfiles() {
   return data.items || [];
 }
 
-async function fetchProfile(id) {
-  const data = await authApi(`/api/profiles/${encodeURIComponent(id)}`);
+async function fetchProfile(id, { countView = true } = {}) {
+  const q = countView ? "" : "?nocount=1";
+  const data = await authApi(`/api/profiles/${encodeURIComponent(id)}${q}`);
   return data.item;
 }
 
@@ -225,8 +227,9 @@ async function fetchNotices() {
   return data.items || [];
 }
 
-async function fetchNotice(id) {
-  const data = await authApi(`/api/notices/${encodeURIComponent(id)}`);
+async function fetchNotice(id, { countView = true } = {}) {
+  const q = countView ? "" : "?nocount=1";
+  const data = await authApi(`/api/notices/${encodeURIComponent(id)}${q}`);
   return data.item;
 }
 
@@ -255,8 +258,9 @@ async function fetchAttendance() {
   return data.items || [];
 }
 
-async function fetchAttendanceItem(id) {
-  const data = await authApi(`/api/attendance/${encodeURIComponent(id)}`);
+async function fetchAttendanceItem(id, { countView = true } = {}) {
+  const q = countView ? "" : "?nocount=1";
+  const data = await authApi(`/api/attendance/${encodeURIComponent(id)}${q}`);
   return data.item;
 }
 

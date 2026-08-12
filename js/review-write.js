@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (editId) {
     try {
-      const item = await fetchReview(editId);
+      const item = await fetchReview(editId, { countView: false });
       const ownerId = item.userId != null ? item.userId : item.user_id;
       const isOwner =
         ownerId != null && String(ownerId) === String(user.id);

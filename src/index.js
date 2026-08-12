@@ -323,6 +323,17 @@ async function handleBoardGet(request, env, table, id, { memberOnly = false } = 
     const auth = await requireMember(request, env);
     if (auth.error) return auth.error;
   }
+
+  const url = new URL(request.url);
+  const countView = url.searchParams.get("nocount") !== "1";
+  if (countView) {
+    await env.DB.prepare(
+      `UPDATE ${table} SET views = COALESCE(views, 0) + 1 WHERE id = ?`
+    )
+      .bind(id)
+      .run();
+  }
+
   const item = await getPost(env, table, id);
   if (!item) return json({ error: "글을 찾을 수 없습니다." }, 404);
   return json({ item });

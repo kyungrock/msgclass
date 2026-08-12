@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (editId) {
     try {
-      const item = await fetchProfile(editId);
+      const item = await fetchProfile(editId, { countView: false });
       titleInput.value = item.title || "";
       bodyInput.value = item.body || "";
       if (authorInput) authorInput.value = item.author || authorName;

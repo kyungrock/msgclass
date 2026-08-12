@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (editId) {
     try {
-      const item = await fetchNotice(editId);
+      const item = await fetchNotice(editId, { countView: false });
       titleInput.value = item.title || "";
       authorInput.value = item.author || "";
       bodyInput.value = item.body || "";

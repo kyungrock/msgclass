@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (editId) {
     try {
-      const item = await fetchAttendanceItem(editId);
+      const item = await fetchAttendanceItem(editId, { countView: false });
       titleInput.value = item.title || "";
       if (pageTitle) pageTitle.textContent = "출근부 수정";
       if (submitBtn) submitBtn.textContent = "수정하기";
