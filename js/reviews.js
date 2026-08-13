@@ -18,8 +18,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const emptyEl = document.getElementById("review-empty");
   const sortEl = document.getElementById("review-sort");
   const searchEl = document.getElementById("review-search");
+  const pagerEl = document.getElementById("review-pagination");
   const toolbarEl = document.querySelector(".board-toolbar");
   const gateEl = document.getElementById("member-gate");
+  const PAGE_SIZE = 30;
 
   if (!listEl) return;
 
@@ -29,6 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!member) {
     listEl.innerHTML = "";
     if (toolbarEl) toolbarEl.hidden = true;
+    if (pagerEl) pagerEl.hidden = true;
     if (countEl) countEl.textContent = "0";
     if (emptyEl && gateEl) emptyEl.hidden = true;
     return;
@@ -37,8 +40,46 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let cachedItems = null;
   let searchTimer = null;
+  let currentPage = Math.max(
+    1,
+    parseInt(new URLSearchParams(location.search).get("page") || "1", 10) || 1
+  );
 
-  const render = async ({ force = false } = {}) => {
+  const setPageInUrl = (page) => {
+    const url = new URL(location.href);
+    if (page <= 1) url.searchParams.delete("page");
+    else url.searchParams.set("page", String(page));
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
+  };
+
+  const renderPager = (totalPages) => {
+    if (!pagerEl) return;
+    pagerEl.innerHTML = "";
+    if (totalPages <= 1) {
+      pagerEl.hidden = true;
+      return;
+    }
+    pagerEl.hidden = false;
+
+    for (let page = 1; page <= totalPages; page += 1) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pager-btn" + (page === currentPage ? " is-active" : "");
+      btn.textContent = String(page);
+      btn.setAttribute("aria-label", `${page}페이지`);
+      if (page === currentPage) btn.setAttribute("aria-current", "page");
+      btn.addEventListener("click", () => {
+        if (page === currentPage) return;
+        currentPage = page;
+        setPageInUrl(page);
+        void render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      pagerEl.appendChild(btn);
+    }
+  };
+
+  const render = async ({ force = false, resetPage = false } = {}) => {
     const isAdmin = member.role === "admin";
     let items = [];
 
@@ -51,6 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       } catch (err) {
         cachedItems = null;
         listEl.innerHTML = "";
+        if (pagerEl) pagerEl.hidden = true;
         if (err.status === 401 || err.status === 403) {
           if (toolbarEl) toolbarEl.hidden = true;
           renderLoginRequiredGate(gateEl || emptyEl, { nextUrl: "reviews.html" });
@@ -67,6 +109,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
+    if (resetPage) currentPage = 1;
+
     const query = searchEl ? searchEl.value.trim().toLowerCase() : "";
     const sort = sortEl ? sortEl.value : "newest";
 
@@ -77,16 +121,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       return sort === "oldest" ? aTime - bTime : bTime - aTime;
     });
 
-    if (countEl) countEl.textContent = String(items.length);
+    const total = items.length;
+    const usePager = !!pagerEl;
+    const totalPages = usePager
+      ? Math.max(1, Math.ceil(total / PAGE_SIZE))
+      : 1;
+    if (usePager && currentPage > totalPages) currentPage = totalPages;
+    if (usePager) setPageInUrl(currentPage);
+
+    const start = usePager ? (currentPage - 1) * PAGE_SIZE : 0;
+    const pageItems = usePager
+      ? items.slice(start, start + PAGE_SIZE)
+      : items;
+
+    if (countEl) countEl.textContent = String(total);
     listEl.innerHTML = "";
     if (emptyEl) {
-      emptyEl.hidden = items.length > 0;
+      emptyEl.hidden = total > 0;
       emptyEl.textContent = query
         ? "검색 결과가 없습니다."
         : "등록된 후기가 없습니다.";
     }
 
-    items.forEach((review) => {
+    pageItems.forEach((review) => {
       const li = document.createElement("li");
       li.className = "board-item";
       const ownerId = review.userId != null ? review.userId : review.user_id;
@@ -94,7 +151,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         member &&
         ownerId != null &&
         String(ownerId) === String(member.id);
-      // 본인 글 또는 관리자
       const canManage = isOwner || isAdmin;
 
       if (canManage) {
@@ -136,13 +192,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       listEl.appendChild(li);
     });
+
+    renderPager(usePager ? totalPages : 1);
   };
 
-  if (sortEl) sortEl.addEventListener("change", () => void render());
+  if (sortEl) {
+    sortEl.addEventListener("change", () => void render({ resetPage: true }));
+  }
   if (searchEl) {
     searchEl.addEventListener("input", () => {
       clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => void render(), 150);
+      searchTimer = setTimeout(() => void render({ resetPage: true }), 150);
     });
   }
   void render({ force: true });

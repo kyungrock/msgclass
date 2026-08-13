@@ -269,6 +269,38 @@ input {
   color: #ddd;
 }
 
+.board-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 22px 0 8px;
+}
+
+.pager-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #3a3a3a;
+  border-radius: 2px;
+  background: var(--control);
+  color: #ddd;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.pager-btn:hover,
+.pager-btn:focus-visible {
+  border-color: #666;
+  color: #fff;
+}
+
+.pager-btn.is-active {
+  border-color: #888;
+  background: #222;
+  color: #fff;
+}
+
 .board-search-wrap {
   display: block;
   min-width: 0;
