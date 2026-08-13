@@ -144,12 +144,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     author.className = "comment-author";
     author.textContent = comment.author || "관리자";
 
-    const date = document.createElement("span");
-    date.className = "comment-date";
-    date.textContent = formatCommentDate(comment.createdAt);
-
     head.appendChild(author);
-    head.appendChild(date);
+    if (isAdmin) {
+      const date = document.createElement("span");
+      date.className = "comment-date";
+      date.textContent = formatCommentDate(comment.createdAt);
+      head.appendChild(date);
+    }
 
     const body = document.createElement("p");
     body.className = "comment-body";
