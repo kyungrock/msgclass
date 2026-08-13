@@ -44,19 +44,19 @@
     <form class="auth-form" id="signup-form">
       <label>
         아이디
-        <input type="text" name="username" autocomplete="username" required minlength="4" maxlength="20" pattern="[A-Za-z0-9_]+" />
+        <input type="text" name="username" autocomplete="username" required minlength="4" maxlength="20" pattern="[A-Za-z0-9_]{4,20}" title="영문, 숫자 텍스트를 4자 이상으로 늘려주세요" />
       </label>
       <label>
         비밀번호
-        <input type="password" name="password" autocomplete="new-password" required minlength="6" maxlength="72" />
+        <input type="password" name="password" autocomplete="new-password" required minlength="6" maxlength="72" title="비밀번호는 6자 이상 입력해 주세요." />
       </label>
       <label>
         비밀번호 확인
-        <input type="password" name="passwordConfirm" autocomplete="new-password" required minlength="6" maxlength="72" />
+        <input type="password" name="passwordConfirm" autocomplete="new-password" required minlength="6" maxlength="72" title="비밀번호는 6자 이상 입력해 주세요." />
       </label>
       <label>
         닉네임
-        <input type="text" name="nickname" required minlength="2" maxlength="20" />
+        <input type="text" name="nickname" required minlength="2" maxlength="20" title="닉네임은 2~20자" />
       </label>
       <p class="auth-error" id="signup-error" hidden></p>
       <button type="submit" class="btn btn-primary auth-submit">회원가입</button>
@@ -73,12 +73,29 @@
   <script src="js/main.js?v=20260811-20"></script>
   <script src="js/auth-ui.js?v=20260811-20"></script>
   <script>
-    document.getElementById("signup-form").addEventListener("submit", async (e) => {
+    const signupForm = document.getElementById("signup-form");
+    const usernameInput = signupForm.username;
+    const USERNAME_MSG = "영문, 숫자 텍스트를 4자 이상으로 늘려주세요";
+
+    const syncUsernameValidity = () => {
+      const value = usernameInput.value.trim();
+      const ok = /^[A-Za-z0-9_]{4,20}$/.test(value);
+      usernameInput.setCustomValidity(ok ? "" : USERNAME_MSG);
+    };
+
+    usernameInput.addEventListener("input", syncUsernameValidity);
+    usernameInput.addEventListener("invalid", syncUsernameValidity);
+    syncUsernameValidity();
+
+    signupForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target;
       const errorEl = document.getElementById("signup-error");
       const btn = form.querySelector('button[type="submit"]');
       errorEl.hidden = true;
+
+      syncUsernameValidity();
+      if (!form.reportValidity()) return;
 
       if (form.password.value !== form.passwordConfirm.value) {
         errorEl.textContent = "비밀번호가 일치하지 않습니다.";
