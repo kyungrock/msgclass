@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const toolbarEl = document.querySelector(".board-toolbar");
   const gateEl = document.getElementById("member-gate");
   const PAGE_SIZE = 30;
+  const PAGE_WINDOW = 5;
 
   if (!listEl) return;
 
@@ -52,6 +53,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     history.replaceState(null, "", url.pathname + url.search + url.hash);
   };
 
+  const goToPage = (page) => {
+    if (page === currentPage) return;
+    currentPage = page;
+    setPageInUrl(page);
+    void render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const makePagerBtn = (label, { page, active = false, disabled = false, ariaLabel } = {}) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pager-btn" + (active ? " is-active" : "");
+    btn.textContent = label;
+    if (ariaLabel) btn.setAttribute("aria-label", ariaLabel);
+    if (active) btn.setAttribute("aria-current", "page");
+    if (disabled) {
+      btn.disabled = true;
+      return btn;
+    }
+    if (page != null) {
+      btn.addEventListener("click", () => goToPage(page));
+    }
+    return btn;
+  };
+
   const renderPager = (totalPages) => {
     if (!pagerEl) return;
     pagerEl.innerHTML = "";
@@ -61,21 +87,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     pagerEl.hidden = false;
 
-    for (let page = 1; page <= totalPages; page += 1) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "pager-btn" + (page === currentPage ? " is-active" : "");
-      btn.textContent = String(page);
-      btn.setAttribute("aria-label", `${page}페이지`);
-      if (page === currentPage) btn.setAttribute("aria-current", "page");
-      btn.addEventListener("click", () => {
-        if (page === currentPage) return;
-        currentPage = page;
-        setPageInUrl(page);
-        void render();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-      pagerEl.appendChild(btn);
+    const groupIndex = Math.floor((currentPage - 1) / PAGE_WINDOW);
+    const startPage = groupIndex * PAGE_WINDOW + 1;
+    const endPage = Math.min(totalPages, startPage + PAGE_WINDOW - 1);
+
+    if (startPage > 1) {
+      pagerEl.appendChild(
+        makePagerBtn("‹", {
+          page: startPage - 1,
+          ariaLabel: "이전 페이지 구간",
+        })
+      );
+    }
+
+    for (let page = startPage; page <= endPage; page += 1) {
+      pagerEl.appendChild(
+        makePagerBtn(String(page), {
+          page,
+          active: page === currentPage,
+          ariaLabel: `${page}페이지`,
+        })
+      );
+    }
+
+    if (endPage < totalPages) {
+      pagerEl.appendChild(
+        makePagerBtn("›", {
+          page: endPage + 1,
+          ariaLabel: "다음 페이지 구간",
+        })
+      );
     }
   };
 

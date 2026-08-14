@@ -301,6 +301,11 @@ input {
   color: #fff;
 }
 
+.pager-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .board-search-wrap {
   display: block;
   min-width: 0;
